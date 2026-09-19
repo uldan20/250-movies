@@ -1,0 +1,69 @@
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { KEYS, readJSON, writeJSON } from './storage'
+import { DEFAULT_FILTERS, type Filters, applyFilters } from './filters'
+import { MOVIES } from '../data/movies'
+import type { Movie } from '../data/types'
+
+export type HistoryEntry = { id: string; at: number }
+
+const STARTING_COINS = 12
+
+export function useArcade() {
+  const [coins, setCoins] = useState(() => readJSON<number>(KEYS.coins, STARTING_COINS))
+  const [history, setHistory] = useState(() => readJSON<HistoryEntry[]>(KEYS.history, []))
+  const [watchlist, setWatchlist] = useState(() => readJSON<string[]>(KEYS.watchlist, []))
+  const [seen, setSeen] = useState(() => readJSON<string[]>(KEYS.seen, []))
+  const [filters, setFilters] = useState<Filters>(() =>
+    readJSON<Filters>(`${KEYS.settings}:filters`, DEFAULT_FILTERS),
+  )
+
+  useEffect(() => writeJSON(KEYS.coins, coins), [coins])
+  useEffect(() => writeJSON(KEYS.history, history), [history])
+  useEffect(() => writeJSON(KEYS.watchlist, watchlist), [watchlist])
+  useEffect(() => writeJSON(KEYS.seen, seen), [seen])
+  useEffect(() => writeJSON(`${KEYS.settings}:filters`, filters), [filters])
+
+  const pool = useMemo(() => applyFilters(MOVIES, filters, seen), [filters, seen])
+
+  const spendCoin = useCallback(() => setCoins((c) => Math.max(0, c - 1)), [])
+  const addCoins = useCallback((n: number) => setCoins((c) => Math.min(99, c + n)), [])
+
+  const recordWin = useCallback((movie: Movie) => {
+    // Menang mengembalikan koin yang dipakai: yang mahal itu gagal capit.
+    setCoins((c) => Math.min(99, c + 1))
+    setHistory((h) => [{ id: movie.id, at: Date.now() }, ...h].slice(0, 120))
+  }, [])
+
+  const toggleWatchlist = useCallback((id: string) => {
+    setWatchlist((w) => (w.includes(id) ? w.filter((x) => x !== id) : [id, ...w]))
+  }, [])
+
+  const toggleSeen = useCallback((id: string) => {
+    setSeen((s) => (s.includes(id) ? s.filter((x) => x !== id) : [id, ...s]))
+  }, [])
+
+  const resetProgress = useCallback(() => {
+    setHistory([])
+    setWatchlist([])
+    setSeen([])
+    setCoins(STARTING_COINS)
+  }, [])
+
+  return {
+    coins,
+    history,
+    watchlist,
+    seen,
+    filters,
+    pool,
+    setFilters,
+    spendCoin,
+    addCoins,
+    recordWin,
+    toggleWatchlist,
+    toggleSeen,
+    resetProgress,
+  }
+}
+
+export type Arcade = ReturnType<typeof useArcade>
