@@ -4,10 +4,10 @@ import type { Movie } from '../data/types'
 import { sfx } from '../lib/sound'
 import PosterImage from './PosterImage'
 
-export type MachineId = 'claw'
+import type { MachineId } from './MachineScreen'
 
 export type Slide = {
-  id: string
+  id: MachineId | string
   name: string
   eyebrow: string
   tagline: string
@@ -34,9 +34,9 @@ export const SLIDES: Slide[] = [
   {
     id: 'case',
     name: 'Case Opening',
-    eyebrow: 'Segera hadir',
-    tagline: 'Carousel poster melaju kencang lalu berhenti di satu pemenang.',
-    available: false,
+    eyebrow: 'Baru',
+    tagline: 'Strip poster melaju kencang lalu berhenti tepat di satu pemenang.',
+    available: true,
     accent: '#ff9f0a',
     backdrop: backdropAt(3),
   },
@@ -194,7 +194,7 @@ export default function HeroCarousel({ onPlay }: { onPlay: (id: MachineId) => vo
                   onClick={() => {
                     if (!slide.available) return
                     sfx.click()
-                    onPlay('claw')
+                    onPlay(slide.id as MachineId)
                   }}
                 >
                   {slide.available ? 'Mainkan' : 'Segera hadir'}

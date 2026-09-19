@@ -101,11 +101,28 @@ await page.locator('[role="dialog"] button:has-text("Selesai")').click()
 await page.waitForTimeout(600)
 check('filter tidak memicu hadiah gratis', (await prizeModal().count()) === 0)
 
-// Koleksi
+// Koleksi + hapus satu tangkapan tanpa mereset progres
+const coinsBeforeDelete = await coins()
 await tab('Koleksi').click()
 await page.waitForTimeout(900)
 await page.screenshot({ path: `${shots}/a5-koleksi.png` })
-check('koleksi mencatat tangkapan', (await page.locator('main button[aria-label]').count()) > 0)
+
+const beforeDelete = await page.locator('main .grid > div').count()
+check('koleksi mencatat tangkapan', beforeDelete > 0, `${beforeDelete} film`)
+
+await page.locator('button:has-text("Edit")').click()
+await page.waitForTimeout(300)
+check('mode edit memunculkan tombol hapus', (await page.locator('button[aria-label^="Hapus "]').count()) === beforeDelete)
+await page.locator('button[aria-label^="Hapus "]').first().click()
+await page.waitForTimeout(400)
+const afterDelete = await page.locator('main .grid > div').count()
+check('satu tangkapan terhapus', afterDelete === beforeDelete - 1, `${beforeDelete} -> ${afterDelete}`)
+
+await tab('Mesin').click()
+await page.waitForTimeout(700)
+check('menghapus tangkapan tidak mengubah koin', (await coins()) === coinsBeforeDelete, `${coinsBeforeDelete} -> ${await coins()}`)
+await tab('Koleksi').click()
+await page.waitForTimeout(500)
 
 // Cari
 await tab('Cari').click()

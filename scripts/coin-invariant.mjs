@@ -61,7 +61,7 @@ await page.waitForTimeout(1200)
 const finalCoins = await coins()
 await page.locator('nav button[aria-label="Koleksi"]').click()
 await page.waitForTimeout(900)
-const rows = await page.locator('main .grid > button').count()
+const rows = await page.locator('main .grid > div').count()
 
 const expected = start - drops + wins
 console.log(`\ncapit=${drops} menang=${wins}`)

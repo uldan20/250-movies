@@ -6,7 +6,6 @@ import { ClawGame, type GamePhase } from './game'
 type Props = {
   pool: Movie[]
   coins: number
-  activeFilters: number
   onSpend: () => void
   onPrize: (movie: Movie) => void
   onMiss: () => void
@@ -62,7 +61,6 @@ function ArrowButton({
 export default function ClawMachine({
   pool,
   coins,
-  activeFilters,
   onSpend,
   onPrize,
   onMiss,
@@ -166,21 +164,7 @@ export default function ClawMachine({
   })
 
   return (
-    <div className="fade-in pb-28">
-      <div className="flex items-start justify-between px-5 pb-4 pt-3">
-        <div>
-          <h1 className="t-heading font-bold text-frost">Movie Catcher</h1>
-          <p className="t-body-sm mt-1 font-light text-ash">
-            {pool.length} film di kabin
-            {activeFilters > 0 ? ` · ${activeFilters} filter aktif` : ''}
-          </p>
-        </div>
-        <button onClick={onOpenFilters} className="pill pill--sm pill--quiet mt-1.5">
-          Filter
-        </button>
-      </div>
-
-      <div className="mx-auto w-full max-w-md px-5">
+    <div className="mx-auto w-full max-w-md px-5">
         <div className="relative aspect-[62/64] w-full overflow-hidden rounded-[8px] border border-hairline bg-black">
           <canvas
             ref={canvasRef}
@@ -248,10 +232,9 @@ export default function ClawMachine({
         >
           {coins} koin · satu capit memakai satu koin, menang mengembalikannya
         </p>
-        <p className="t-caption mt-1 text-center font-light text-mist">
-          Keyboard: ← → menggeser, Spasi mencapit
-        </p>
-      </div>
+      <p className="t-caption mt-1 text-center font-light text-mist">
+        Keyboard: ← → menggeser, Spasi mencapit
+      </p>
     </div>
   )
 }

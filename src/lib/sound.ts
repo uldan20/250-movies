@@ -85,6 +85,11 @@ class Sfx {
     this.blip(880, 0.05, 'square', 0.25)
   }
 
+  /** Detik pendek saat poster melintasi penanda pada Case Opening. */
+  tick() {
+    this.blip(1500, 0.026, 'square', 0.14)
+  }
+
   coin() {
     this.blip(988, 0.07, 'square', 0.4)
     window.setTimeout(() => this.blip(1319, 0.16, 'square', 0.35), 70)

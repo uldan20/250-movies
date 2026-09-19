@@ -12,8 +12,12 @@ type Props = {
   prize?: boolean
   inWatchlist: boolean
   isSeen: boolean
+  /** Film ini tercatat di riwayat tangkapan. */
+  inHistory?: boolean
   onToggleWatchlist: () => void
   onToggleSeen: () => void
+  /** Buang catatan tangkapan — berguna saat cuma coba-coba mencapit. */
+  onRemoveCatch?: () => void
   onPlayAgain?: () => void
   onClose: () => void
 }
@@ -23,8 +27,10 @@ export default function MovieSheet({
   prize = false,
   inWatchlist,
   isSeen,
+  inHistory = false,
   onToggleWatchlist,
   onToggleSeen,
+  onRemoveCatch,
   onPlayAgain,
   onClose,
 }: Props) {
@@ -79,6 +85,7 @@ export default function MovieSheet({
       <div
         role={prize ? 'status' : undefined}
         aria-label={prize ? `Kamu mendapat ${movie.title}` : undefined}
+        data-movie-id={movie.id}
         className="p-5"
       >
         <div className="flex gap-4">
@@ -137,7 +144,25 @@ export default function MovieSheet({
           >
             IMDb ↗
           </a>
+          {onRemoveCatch && (prize || inHistory) && (
+            <button
+              onClick={() => {
+                sfx.click()
+                onRemoveCatch()
+              }}
+              className="pill pill--sm"
+              style={{ background: '#2c2c2e', color: '#ff453a' }}
+            >
+              {prize ? 'Batalkan tangkapan' : 'Hapus dari tangkapan'}
+            </button>
+          )}
         </div>
+
+        {onRemoveCatch && prize && (
+          <p className="t-caption mt-3 font-light text-mist">
+            Membatalkan hanya menghapus catatannya. Koin tidak terpengaruh.
+          </p>
+        )}
 
         {shareError && <p className="t-caption mt-3 text-[#ff9f0a]">{shareError}</p>}
       </div>

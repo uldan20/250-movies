@@ -1,14 +1,14 @@
 # Arcade 250
 
 Randomizer 250 film terbaik versi IMDb, dikemas sebagai aplikasi bergaya
-**Apple Arcade**. Mesin utamanya adalah mesin capit sungguhan: ubin poster
-ditumpuk dengan physics, derek menjepit dengan kekuatan yang diundi, dan
-cengkeramannya **bisa lepas di tengah jalan**. Film yang kamu dapat adalah ubin
-yang benar-benar berhasil kamu capit.
+**Apple Arcade**. Ada dua mesin, dan keduanya memegang janji yang sama: apa
+yang kamu lihat berhenti di layar itulah film yang kamu dapat.
 
 ![Beranda](docs/screenshot-beranda.png)
 
-![Mesin capit](docs/screenshot-mesin.png)
+![Movie Catcher](docs/screenshot-mesin.png)
+
+![Case Opening](docs/screenshot-case.png)
 
 ## Jalankan
 
@@ -42,7 +42,9 @@ terbaca sebagai ikon aplikasi, bukan sebagai gambar.
 Strukturnya juga mengikuti Arcade: hero carousel yang maju sendiri, rak konten
 bergulir horizontal, dan tab bar tetap di bawah — Beranda, Mesin, Koleksi, Cari.
 
-## Cara mesinnya bekerja
+## Mesin
+
+### Movie Catcher — mesin capit
 
 Derek digeser dengan `‹ ›` lalu diturunkan dengan **Capit** (keyboard: panah
 kiri/kanan dan spasi). Yang terjadi setelah itu:
@@ -57,12 +59,44 @@ kiri/kanan dan spasi). Yang terjadi setelah itu:
 4. **Meluncur ke lubang** — ubin yang selamat jatuh ke lubang hadiah dan membuka
    lembar detail film.
 
-Ekonomi koin: satu kali capit = satu koin, **menang mengembalikan koin itu**.
-Jadi yang mahal adalah gagal capit, bukan bermainnya.
+Ubin di kabin adalah sampel acak dari pool yang **sudah difilter**, dan ubin
+yang tercapit itulah hadiahnya. Filter benar-benar dihormati tanpa perlu
+mencurangi hasil physics.
 
-Yang penting: ubin di kabin adalah sampel acak dari pool yang **sudah difilter**,
-dan ubin yang tercapit itulah hadiahnya. Filter benar-benar dihormati tanpa
-perlu mencurangi hasil physics.
+### Case Opening
+
+Strip poster melaju kencang lalu melambat dan berhenti tepat di penanda tengah,
+dengan detik yang berbunyi tiap poster melintas.
+
+Pemenangnya **ditentukan lebih dulu**, lalu posisi berhentinya dihitung mundur
+dari situ — jadi ubin di bawah penanda dijamin sama dengan hadiah yang
+diberikan, bukan hasil tebakan visual. Titik berhentinya diberi sedikit
+kemelesetan acak supaya tidak terasa mekanis, tapi tetap jauh di dalam batas
+ubin pemenang. `npm run smoke:case` menjaga janji itu.
+
+### Ekonomi koin
+
+Satu permainan memakai satu koin di kedua mesin, tapi pengembaliannya berbeda
+karena peluangnya berbeda:
+
+| Mesin | Bisa gagal? | Koin kembali saat menang? |
+|-------|-------------|---------------------------|
+| Movie Catcher | ya, cengkeraman bisa lepas | ya — yang mahal adalah meleset |
+| Case Opening | tidak, selalu memberi film | tidak — kalau dikembalikan, mesin ini jadi gratis tanpa batas |
+
+## Mengelola tangkapan
+
+![Koleksi](docs/screenshot-koleksi.png)
+
+Coba-coba mencapit tidak perlu ditebus dengan mereset semua progres. Di tab
+**Koleksi**, tombol **Edit** memunculkan tanda − di tiap ubin untuk menghapus
+satu per satu, plus aksi mengosongkan seluruh daftar. Cara yang sama berlaku
+untuk watchlist dan tanda sudah ditonton.
+
+Lembar hadiah juga punya **Batalkan tangkapan** tepat setelah menang, dan
+lembar detail film punya **Hapus dari tangkapan** untuk film yang sudah
+tercatat. Menghapus catatan **tidak mengubah koin** — koinnya sudah selesai
+dihitung saat permainan berakhir.
 
 ## Poster
 
@@ -119,10 +153,13 @@ src/
     HeroCarousel.tsx          carousel mesin unggulan
     HomeScreen / SearchScreen / LibraryScreen
     TabBar.tsx                navigasi bawah
+    MachineScreen.tsx         kepala layar mesin + pemilih mesin
     MovieSheet.tsx            lembar detail; dipakai ulang sebagai layar hadiah
     ClawMachine/
       game.ts                 physics matter.js + renderer canvas
       index.tsx               kontrol, keyboard, status
+    CaseOpening/
+      index.tsx               strip poster, animasi berhenti, penanda
 ```
 
 Efek suara **tidak memakai satu pun file audio** — semuanya dibangkitkan dengan
@@ -136,16 +173,21 @@ Tiga suite Playwright menjalankan situs di browser sungguhan:
 ```bash
 npm run build
 npm run preview &
-npm run smoke          # beranda, hero, mesin, filter, koleksi, cari, mobile
+npm run smoke          # beranda, hero, mesin, filter, hapus tangkapan, cari, mobile
 npm run smoke:coins    # invarian: koin == awal - jumlah_capit + jumlah_menang
+npm run smoke:case     # hadiah Case Opening == ubin di bawah penanda
 npm run smoke:posters  # resolver poster, dengan respons Wikipedia dipalsukan
 ```
 
-`smoke:coins` menjaga hal terpenting: mesin tidak boleh memberi hadiah yang
-tidak dicapit. `smoke:posters` membuktikan tiga hal yang mudah salah pada
-resolver — `pilicense=any` terkirim, kandidat tanpa thumbnail dilewati lalu
-pencarian diulang tanpa tahun, dan kandidat dipilih menurut peringkat relevansi
-bukan urutan kunci objek.
+Dua suite menjaga kejujuran masing-masing mesin. `smoke:coins` memastikan mesin
+capit tidak pernah memberi hadiah yang tidak dicapit. `smoke:case` membaca
+geometri strip setelah animasi berhenti dan membandingkan ubin di bawah penanda
+dengan hadiah yang diberikan — kalau keduanya berbeda, animasinya berbohong.
+
+`smoke:posters` membuktikan tiga hal yang mudah salah pada resolver:
+`pilicense=any` terkirim, kandidat tanpa thumbnail dilewati lalu pencarian
+diulang tanpa tahun, dan kandidat dipilih menurut peringkat relevansi bukan
+urutan kunci objek.
 
 Kalau perlu, tunjuk Chromium lewat `CHROMIUM_PATH` dan alamat lain lewat
 `BASE_URL`.
@@ -159,6 +201,6 @@ dan permainannya tetap utuh. Situs tidak punya scroll horizontal di lebar ponsel
 
 ## Mesin berikutnya
 
-Carousel beranda sudah berupa daftar mesin, jadi mesin baru tinggal ditambahkan
-sebagai satu entri dan satu komponen. Yang sudah disiapkan tempatnya: Case
-Opening, Gashapon, Roda Putar, Plinko, dan Turnamen 16 Besar.
+Carousel beranda sudah berupa daftar mesin dan layar mesin sudah punya pemilih,
+jadi mesin baru tinggal ditambahkan sebagai satu entri dan satu komponen. Yang
+sudah disiapkan tempatnya: Gashapon, Roda Putar, Plinko, dan Turnamen 16 Besar.

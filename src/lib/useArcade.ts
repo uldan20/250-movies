@@ -28,9 +28,14 @@ export function useArcade() {
   const spendCoin = useCallback(() => setCoins((c) => Math.max(0, c - 1)), [])
   const addCoins = useCallback((n: number) => setCoins((c) => Math.min(99, c + n)), [])
 
-  const recordWin = useCallback((movie: Movie) => {
-    // Menang mengembalikan koin yang dipakai: yang mahal itu gagal capit.
-    setCoins((c) => Math.min(99, c + 1))
+  /**
+   * @param refundCoin Kembalikan koin yang baru dipakai. Mesin yang bisa gagal
+   * (mesin capit) mengembalikannya, sehingga yang mahal adalah meleset. Mesin
+   * yang selalu memberi hadiah (Case Opening) tidak, kalau tidak permainannya
+   * jadi gratis tanpa batas.
+   */
+  const recordWin = useCallback((movie: Movie, refundCoin: boolean) => {
+    if (refundCoin) setCoins((c) => Math.min(99, c + 1))
     setHistory((h) => [{ id: movie.id, at: Date.now() }, ...h].slice(0, 120))
   }, [])
 
@@ -40,6 +45,38 @@ export function useArcade() {
 
   const toggleSeen = useCallback((id: string) => {
     setSeen((s) => (s.includes(id) ? s.filter((x) => x !== id) : [id, ...s]))
+  }, [])
+
+  /**
+   * Hapus satu film dari riwayat tangkapan. Satu film bisa tercatat beberapa
+   * kali, jadi seluruh entri untuk film itu ikut dibuang — yang dilihat
+   * pengguna adalah daftar unik, bukan tiap kejadian.
+   *
+   * Koin tidak dikembalikan maupun ditarik: menang sudah mengembalikan koinnya
+   * saat itu juga, jadi membatalkan catatan tidak mengubah apa pun soal koin.
+   */
+  const removeCatch = useCallback((id: string) => {
+    setHistory((h) => h.filter((entry) => entry.id !== id))
+  }, [])
+
+  const clearCatches = useCallback(() => {
+    setHistory([])
+  }, [])
+
+  const removeFromWatchlist = useCallback((id: string) => {
+    setWatchlist((w) => w.filter((x) => x !== id))
+  }, [])
+
+  const clearWatchlist = useCallback(() => {
+    setWatchlist([])
+  }, [])
+
+  const unmarkSeen = useCallback((id: string) => {
+    setSeen((s) => s.filter((x) => x !== id))
+  }, [])
+
+  const clearSeen = useCallback(() => {
+    setSeen([])
   }, [])
 
   const resetProgress = useCallback(() => {
@@ -62,6 +99,12 @@ export function useArcade() {
     recordWin,
     toggleWatchlist,
     toggleSeen,
+    removeCatch,
+    clearCatches,
+    removeFromWatchlist,
+    clearWatchlist,
+    unmarkSeen,
+    clearSeen,
     resetProgress,
   }
 }

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
-import ClawMachine from './components/ClawMachine'
 import FilterSheet from './components/FilterSheet'
 import HomeScreen from './components/HomeScreen'
 import LibraryScreen from './components/LibraryScreen'
+import MachineScreen, { type MachineId } from './components/MachineScreen'
 import MovieSheet from './components/MovieSheet'
 import SearchScreen from './components/SearchScreen'
 import SettingsSheet from './components/SettingsSheet'
@@ -17,6 +17,7 @@ type SheetId = 'filters' | 'settings' | null
 export default function App() {
   const arcade = useArcade()
   const [tab, setTab] = useState<TabId>('home')
+  const [machine, setMachine] = useState<MachineId>('claw')
   const [sheet, setSheet] = useState<SheetId>(null)
   const [detail, setDetail] = useState<Movie | null>(null)
   const [prize, setPrize] = useState<Movie | null>(null)
@@ -27,8 +28,8 @@ export default function App() {
   }, [tab])
 
   const handlePrize = useCallback(
-    (movie: Movie) => {
-      arcade.recordWin(movie)
+    (movie: Movie, refundCoin: boolean) => {
+      arcade.recordWin(movie, refundCoin)
       setPrize(movie)
     },
     [arcade],
@@ -54,7 +55,10 @@ export default function App() {
             history={arcade.history.map((h) => h.id)}
             watchlist={arcade.watchlist}
             coins={arcade.coins}
-            onPlay={() => setTab('machine')}
+            onPlay={(id) => {
+              setMachine(id)
+              setTab('machine')
+            }}
             onSelectMovie={setDetail}
             onApplyShelf={applyShelf}
             onOpenSettings={() => setSheet('settings')}
@@ -62,7 +66,9 @@ export default function App() {
         )}
 
         {tab === 'machine' && (
-          <ClawMachine
+          <MachineScreen
+            machine={machine}
+            onChangeMachine={setMachine}
             pool={arcade.pool}
             coins={arcade.coins}
             activeFilters={activeFilters}
@@ -80,6 +86,16 @@ export default function App() {
             watchlist={arcade.watchlist}
             seen={arcade.seen}
             onSelectMovie={setDetail}
+            onRemove={(which, id) => {
+              if (which === 'history') arcade.removeCatch(id)
+              else if (which === 'watchlist') arcade.removeFromWatchlist(id)
+              else arcade.unmarkSeen(id)
+            }}
+            onClear={(which) => {
+              if (which === 'history') arcade.clearCatches()
+              else if (which === 'watchlist') arcade.clearWatchlist()
+              else arcade.clearSeen()
+            }}
           />
         )}
 
@@ -117,6 +133,10 @@ export default function App() {
           isSeen={arcade.seen.includes(prize.id)}
           onToggleWatchlist={() => arcade.toggleWatchlist(prize.id)}
           onToggleSeen={() => arcade.toggleSeen(prize.id)}
+          onRemoveCatch={() => {
+            arcade.removeCatch(prize.id)
+            setPrize(null)
+          }}
           onPlayAgain={() => setPrize(null)}
           onClose={() => setPrize(null)}
         />
@@ -126,8 +146,10 @@ export default function App() {
             movie={detail}
             inWatchlist={arcade.watchlist.includes(detail.id)}
             isSeen={arcade.seen.includes(detail.id)}
+            inHistory={arcade.history.some((h) => h.id === detail.id)}
             onToggleWatchlist={() => arcade.toggleWatchlist(detail.id)}
             onToggleSeen={() => arcade.toggleSeen(detail.id)}
+            onRemoveCatch={() => arcade.removeCatch(detail.id)}
             onClose={() => setDetail(null)}
           />
         )

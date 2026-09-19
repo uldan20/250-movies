@@ -1,7 +1,8 @@
 import type { Movie } from '../data/types'
 import type { Filters } from '../lib/filters'
 import { buildShelves } from '../lib/shelves'
-import HeroCarousel, { type MachineId } from './HeroCarousel'
+import HeroCarousel from './HeroCarousel'
+import type { MachineId } from './MachineScreen'
 import { IconTile, PosterTile, Screen, SectionHeader, Shelf } from './ui'
 
 type Props = {
