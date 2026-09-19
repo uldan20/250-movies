@@ -1,7 +1,7 @@
 import { ALL_DECADES, ALL_GENRES } from '../data/movies'
 import { DEFAULT_FILTERS, type Filters } from '../lib/filters'
 import { sfx } from '../lib/sound'
-import SlideOver from './SlideOver'
+import Sheet from './Sheet'
 
 type Props = {
   open: boolean
@@ -34,22 +34,23 @@ function Chip({
         onClick()
       }}
       aria-pressed={active}
-      className={`rounded-full px-3.5 py-2 text-xs font-bold transition ${
-        active
-          ? 'bg-cab text-cream shadow-[0_3px_0_var(--color-cab-base)]'
-          : 'bg-ink/8 text-ink/65 hover:bg-ink/15'
-      }`}
+      className={`pill pill--sm ${active ? 'pill--filled' : 'pill--quiet'}`}
     >
       {children}
     </button>
   )
 }
 
-function SectionTitle({ children }: { children: React.ReactNode }) {
-  return <h3 className="mb-2.5 font-display text-sm text-ink/70">{children}</h3>
+function Group({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="hairline-b px-5 py-5 last:border-0">
+      <h3 className="t-body-sm mb-3 font-semibold text-frost">{title}</h3>
+      {children}
+    </section>
+  )
 }
 
-export default function FilterPanel({ open, filters, matchCount, onChange, onClose }: Props) {
+export default function FilterSheet({ open, filters, matchCount, onChange, onClose }: Props) {
   function toggleGenre(g: string) {
     onChange({
       ...filters,
@@ -69,36 +70,39 @@ export default function FilterPanel({ open, filters, matchCount, onChange, onClo
   }
 
   return (
-    <SlideOver
+    <Sheet
       open={open}
       title="Filter mesin"
       onClose={onClose}
       footer={
         <div className="flex items-center justify-between gap-3">
-          <p className="text-sm font-semibold text-ink/65">
-            <strong className="font-display text-base text-ink">{matchCount}</strong> film masuk
-            kabin
+          <p className="t-body-sm font-light text-ash">
+            <strong className="font-semibold text-frost">{matchCount}</strong> film masuk kabin
           </p>
-          <button
-            onClick={() => {
-              sfx.click()
-              onChange(DEFAULT_FILTERS)
-            }}
-            className="toy-btn toy-btn--cream px-4 py-2.5 text-sm"
-          >
-            Reset
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                sfx.click()
+                onChange(DEFAULT_FILTERS)
+              }}
+              className="pill pill--sm pill--quiet"
+            >
+              Reset
+            </button>
+            <button onClick={onClose} className="pill pill--sm pill--filled">
+              Selesai
+            </button>
+          </div>
         </div>
       }
     >
       {matchCount === 0 && (
-        <p className="mb-5 rounded-xl bg-orange/20 px-4 py-3 text-sm font-semibold text-[#a85a12]">
+        <p className="t-body-sm m-5 rounded-[8px] border border-[#ff9f0a]/40 bg-[#ff9f0a]/10 px-4 py-3 font-light text-[#ff9f0a]">
           Tidak ada film yang cocok. Longgarkan filternya supaya kabin bisa diisi.
         </p>
       )}
 
-      <section className="mb-7">
-        <SectionTitle>Genre</SectionTitle>
+      <Group title="Genre">
         <div className="flex flex-wrap gap-2">
           {ALL_GENRES.map((g) => (
             <Chip key={g} active={filters.genres.includes(g)} onClick={() => toggleGenre(g)}>
@@ -106,10 +110,9 @@ export default function FilterPanel({ open, filters, matchCount, onChange, onClo
             </Chip>
           ))}
         </div>
-      </section>
+      </Group>
 
-      <section className="mb-7">
-        <SectionTitle>Dekade</SectionTitle>
+      <Group title="Dekade">
         <div className="flex flex-wrap gap-2">
           {ALL_DECADES.map((d) => (
             <Chip key={d} active={filters.decades.includes(d)} onClick={() => toggleDecade(d)}>
@@ -117,12 +120,9 @@ export default function FilterPanel({ open, filters, matchCount, onChange, onClo
             </Chip>
           ))}
         </div>
-      </section>
+      </Group>
 
-      <section className="mb-7">
-        <SectionTitle>
-          Rating minimal: <span className="text-ink">{filters.minRating.toFixed(1)}</span>
-        </SectionTitle>
+      <Group title={`Rating minimal — ${filters.minRating.toFixed(1)}`}>
         <input
           type="range"
           min={0}
@@ -130,13 +130,12 @@ export default function FilterPanel({ open, filters, matchCount, onChange, onClo
           step={0.1}
           value={filters.minRating}
           onChange={(e) => onChange({ ...filters, minRating: Number(e.target.value) })}
-          className="w-full accent-[#8cc63f]"
+          className="w-full accent-[#0071e3]"
           aria-label="Rating IMDb minimal"
         />
-      </section>
+      </Group>
 
-      <section className="mb-7">
-        <SectionTitle>Durasi</SectionTitle>
+      <Group title="Durasi">
         <div className="flex flex-wrap gap-2">
           {RUNTIME_OPTIONS.map((opt) => (
             <Chip
@@ -148,19 +147,19 @@ export default function FilterPanel({ open, filters, matchCount, onChange, onClo
             </Chip>
           ))}
         </div>
-      </section>
+      </Group>
 
-      <section>
-        <label className="flex cursor-pointer items-center gap-3 text-sm font-semibold text-ink/80">
+      <Group title="Sudah ditonton">
+        <label className="t-body-sm flex cursor-pointer items-center gap-3 font-light text-ash">
           <input
             type="checkbox"
             checked={filters.hideSeen}
             onChange={(e) => onChange({ ...filters, hideSeen: e.target.checked })}
-            className="h-4 w-4 accent-[#8cc63f]"
+            className="h-4 w-4 accent-[#0071e3]"
           />
           Sembunyikan film yang sudah saya tonton
         </label>
-      </section>
-    </SlideOver>
+      </Group>
+    </Sheet>
   )
 }

@@ -16,16 +16,19 @@ export function tierOf(rank: number): Tier {
 }
 
 export const TIER_LABEL: Record<Tier, string> = {
-  legendary: 'LEGENDARY',
-  epic: 'EPIC',
-  rare: 'RARE',
-  common: 'CLASSIC',
+  legendary: 'Top 10',
+  epic: 'Top 50',
+  rare: 'Top 120',
+  common: 'Top 250',
 }
 
-/** Warna utama tiap tier (hex), dipakai canvas maupun CSS. */
+/**
+ * DESIGN.md hanya mengizinkan satu warna dekoratif, jadi tier dibedakan lewat
+ * label — biru sinyal hanya untuk dua tier teratas, sisanya abu netral.
+ */
 export const TIER_COLOR: Record<Tier, string> = {
-  legendary: '#f0a030',
-  epic: '#9b59b6',
-  rare: '#3b82c4',
-  common: '#6bbe4e',
+  legendary: '#2997ff',
+  epic: '#2997ff',
+  rare: '#6e6e73',
+  common: '#6e6e73',
 }

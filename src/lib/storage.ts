@@ -35,5 +35,5 @@ export const KEYS = {
   watchlist: 'arcade250:watchlist',
   seen: 'arcade250:seen',
   settings: 'arcade250:settings',
-  posters: 'arcade250:posters:v1',
+  posters: 'arcade250:posters:v2',
 } as const

@@ -2,7 +2,6 @@ import Matter from 'matter-js'
 import type { Movie } from '../../data/types'
 import { createPosterQueue } from '../../lib/posters'
 import { randRange, sample } from '../../lib/rng'
-import { TIER_COLOR, tierOf } from '../../lib/format'
 import { buzz, sfx } from '../../lib/sound'
 
 export type GamePhase =
@@ -28,7 +27,7 @@ const CLAW_HOME_X = 95
 const CLAW_MIN_X = 214
 const CLAW_MAX_X = W - 58
 const CLAW_TOP_Y = 124
-const CAPSULE_R = 26
+const TILE_R = 27
 const MAX_CAPSULES = 40
 const CARRIAGE_SPEED = 3.4
 
@@ -186,17 +185,18 @@ export class ClawGame {
   }
 
   private addCapsule(movie: Movie, index: number) {
-    const spanL = DIVIDER_X + CAPSULE_R + 12
-    const spanR = W - WALL - CAPSULE_R - 12
+    const spanL = DIVIDER_X + TILE_R + 12
+    const spanR = W - WALL - TILE_R - 12
     const cols = 7
     const step = (spanR - spanL) / (cols - 1)
     const x = spanL + (index % cols) * step + randRange(-5, 5)
     // ditebar di atas kabin dalam kisi supaya jatuh dan menumpuk sendiri
-    const y = 240 - Math.floor(index / cols) * (CAPSULE_R * 2 + 8)
-    const body = Matter.Bodies.circle(x, y, CAPSULE_R, {
-      restitution: 0.24,
-      friction: 0.32,
-      frictionAir: 0.008,
+    const y = 240 - Math.floor(index / cols) * (TILE_R * 2 + 8)
+    const body = Matter.Bodies.rectangle(x, y, TILE_R * 2, TILE_R * 2, {
+      chamfer: { radius: 12 },
+      restitution: 0.12,
+      friction: 0.42,
+      frictionAir: 0.01,
       density: 0.0012,
       label: movie.id,
     })
@@ -262,7 +262,7 @@ export class ClawGame {
   private computeDepth(): number {
     let topY = FLOOR_Y
     for (const c of this.capsules) {
-      if (Math.abs(c.body.position.x - this.clawX) < CAPSULE_R + 16) {
+      if (Math.abs(c.body.position.x - this.clawX) < TILE_R + 16) {
         topY = Math.min(topY, c.body.position.y)
       }
     }
@@ -400,12 +400,12 @@ export class ClawGame {
         best = c
       }
     }
-    if (!best || bestDist > CAPSULE_R + 26) {
+    if (!best || bestDist > TILE_R + 26) {
       this.slipAt = null
       return
     }
 
-    const accuracy = 1 - Math.min(1, bestDist / (CAPSULE_R + 26))
+    const accuracy = 1 - Math.min(1, bestDist / (TILE_R + 26))
     const holdChance = 0.34 + accuracy * 0.42
     const holds = Math.random() < holdChance
 
@@ -453,7 +453,7 @@ export class ClawGame {
       // kembalikan ke tumpukan supaya tidak ada hadiah gratis.
       if (performance.now() < this.settleUntil || c !== this.lastReleased) {
         Matter.Body.setPosition(c.body, {
-          x: randRange(DIVIDER_X + CAPSULE_R + 20, W - WALL - CAPSULE_R - 20),
+          x: randRange(DIVIDER_X + TILE_R + 20, W - WALL - TILE_R - 20),
           y: 140,
         })
         Matter.Body.setVelocity(c.body, { x: 0, y: 0 })
@@ -535,68 +535,65 @@ export class ClawGame {
     }
   }
 
-  /** Dinding dan lantai bagian dalam kabin, plus rel derek. */
+  /** Interior kabin: nyaris hitam, hierarki dari pergeseran permukaan saja. */
   private drawCabin(ctx: CanvasRenderingContext2D) {
     const bg = ctx.createLinearGradient(0, 0, 0, H)
-    bg.addColorStop(0, '#549087')
-    bg.addColorStop(0.55, '#3f736a')
-    bg.addColorStop(1, '#2f5952')
+    bg.addColorStop(0, '#141416')
+    bg.addColorStop(0.6, '#0b0b0d')
+    bg.addColorStop(1, '#000000')
     ctx.fillStyle = bg
     ctx.fillRect(0, 0, W, H)
 
-    // lantai kabin sedikit lebih gelap, dengan garis tepi terang
-    const floor = ctx.createLinearGradient(0, FLOOR_Y, 0, H)
-    floor.addColorStop(0, '#356158')
-    floor.addColorStop(1, '#264A43')
-    ctx.fillStyle = floor
-    ctx.fillRect(0, FLOOR_Y, W, H - FLOOR_Y)
-    ctx.fillStyle = 'rgba(255,255,255,0.12)'
-    ctx.fillRect(0, FLOOR_Y, W, 3)
+    // satu sorot biru dekoratif, satu-satunya warna di kabin
+    const glow = ctx.createRadialGradient(W * 0.5, H * 0.24, 10, W * 0.5, H * 0.24, W * 0.62)
+    glow.addColorStop(0, 'rgba(41,151,255,0.16)')
+    glow.addColorStop(1, 'transparent')
+    ctx.fillStyle = glow
+    ctx.fillRect(0, 0, W, H)
+
+    // lantai: garis rambut, bukan blok warna
+    ctx.strokeStyle = 'rgba(255,255,255,0.14)'
+    ctx.lineWidth = 1
+    ctx.beginPath()
+    ctx.moveTo(0, FLOOR_Y + 0.5)
+    ctx.lineTo(W, FLOOR_Y + 0.5)
+    ctx.stroke()
+    ctx.fillStyle = '#08080a'
+    ctx.fillRect(0, FLOOR_Y + 1, W, H - FLOOR_Y)
 
     // rel derek
-    ctx.fillStyle = '#eef3ec'
+    ctx.fillStyle = '#48484a'
     ctx.beginPath()
-    ctx.roundRect(WALL + 4, RAIL_Y - 5, W - (WALL + 4) * 2, 10, 5)
-    ctx.fill()
-    ctx.fillStyle = 'rgba(21,42,38,0.16)'
-    ctx.beginPath()
-    ctx.roundRect(WALL + 4, RAIL_Y + 1, W - (WALL + 4) * 2, 4, 2)
+    ctx.roundRect(WALL + 4, RAIL_Y - 2.5, W - (WALL + 4) * 2, 5, 2.5)
     ctx.fill()
   }
 
   private get chuteGeom() {
-    const x0 = WALL + 2
-    const x1 = DIVIDER_X + 6
-    return { x0, x1, cx: (x0 + x1) / 2, rx: (x1 - x0) / 2, ry: 16 }
+    const x0 = WALL + 6
+    const x1 = DIVIDER_X + 4
+    return { x0, x1, cx: (x0 + x1) / 2, rx: (x1 - x0) / 2, ry: 14 }
   }
 
-  /** Rongga gelap dan bibir belakang tabung hadiah. */
+  /** Rongga lubang hadiah, digambar sebelum ubin. */
   private drawChuteBack(ctx: CanvasRenderingContext2D) {
     const { x0, x1, cx, rx, ry } = this.chuteGeom
 
-    ctx.fillStyle = '#1b3832'
+    ctx.fillStyle = '#000000'
     ctx.beginPath()
     ctx.ellipse(cx, DIVIDER_TOP, rx, ry, 0, 0, Math.PI * 2)
     ctx.fill()
     ctx.fillRect(x0, DIVIDER_TOP, x1 - x0, H - DIVIDER_TOP)
 
-    // bibir belakang yang terang
-    ctx.strokeStyle = '#b6e06a'
-    ctx.lineWidth = 7
+    ctx.strokeStyle = 'rgba(41,151,255,0.85)'
+    ctx.lineWidth = 2
     ctx.beginPath()
     ctx.ellipse(cx, DIVIDER_TOP, rx, ry, 0, Math.PI, 0)
     ctx.stroke()
   }
 
-  /** Dinding depan tabung: menutupi apa pun yang sudah jatuh ke dalamnya. */
+  /** Dinding depan lubang: menutup ubin yang sudah jatuh ke dalamnya. */
   private drawChuteFront(ctx: CanvasRenderingContext2D) {
     const { x0, x1, cx, rx, ry } = this.chuteGeom
-
-    const body = ctx.createLinearGradient(x0, 0, x1, 0)
-    body.addColorStop(0, '#5d9026')
-    body.addColorStop(0.3, '#8cc63f')
-    body.addColorStop(0.68, '#aeda63')
-    body.addColorStop(1, '#5d9026')
 
     ctx.beginPath()
     ctx.moveTo(x1, DIVIDER_TOP)
@@ -604,104 +601,69 @@ export class ClawGame {
     ctx.lineTo(x0, H)
     ctx.lineTo(x1, H)
     ctx.closePath()
-    ctx.fillStyle = body
+    // Gradasi melintang memberi kesan silinder; warna rata terbaca seperti papan.
+    const wall = ctx.createLinearGradient(x0, 0, x1, 0)
+    wall.addColorStop(0, '#0f0f11')
+    wall.addColorStop(0.42, '#2c2c2e')
+    wall.addColorStop(0.78, '#141416')
+    wall.addColorStop(1, '#0b0b0d')
+    ctx.fillStyle = wall
     ctx.fill()
 
-    // bibir depan
-    ctx.strokeStyle = '#b6e06a'
-    ctx.lineWidth = 7
+    ctx.strokeStyle = 'rgba(41,151,255,0.85)'
+    ctx.lineWidth = 2
     ctx.beginPath()
     ctx.ellipse(cx, DIVIDER_TOP, rx, ry, 0, 0, Math.PI)
     ctx.stroke()
 
     ctx.save()
-    ctx.fillStyle = 'rgba(255,255,255,0.92)'
-    ctx.font = '600 17px Fredoka, Nunito, sans-serif'
+    ctx.fillStyle = 'rgba(245,245,247,0.75)'
+    ctx.font = '600 13px -apple-system, Inter, system-ui, sans-serif'
     ctx.textAlign = 'center'
-    ctx.fillText('HADIAH', cx, DIVIDER_TOP + 70)
+    ctx.letterSpacing = '1.4px'
+    ctx.fillText('HADIAH', cx, DIVIDER_TOP + 56)
     ctx.restore()
   }
 
-  /** Bola mainan putih mengkilap dengan pita warna tier dan jendela poster. */
+  /** Ubin poster persegi membulat, seperti ikon aplikasi di dalam kabin. */
   private drawBall(ctx: CanvasRenderingContext2D, c: Capsule) {
     const { x, y } = c.body.position
-    const r = CAPSULE_R
-    const color = TIER_COLOR[tierOf(c.movie.rank)]
+    const r = TILE_R
     const poster = this.getPoster(c.movie.id)
 
     ctx.save()
-
-    // bayangan lembut di bawah bola
-    ctx.beginPath()
-    ctx.ellipse(x, y + r * 0.86, r * 0.78, r * 0.24, 0, 0, Math.PI * 2)
-    ctx.fillStyle = 'rgba(18,44,40,0.26)'
-    ctx.fill()
-
     ctx.translate(x, y)
     ctx.rotate(c.body.angle)
 
-    // badan bola
-    const shell = ctx.createRadialGradient(-r * 0.36, -r * 0.42, r * 0.08, 0, 0, r)
-    shell.addColorStop(0, '#ffffff')
-    shell.addColorStop(0.66, '#f4f6f1')
-    shell.addColorStop(1, '#ccd5cd')
     ctx.beginPath()
-    ctx.arc(0, 0, r, 0, Math.PI * 2)
-    ctx.fillStyle = shell
-    ctx.fill()
+    ctx.roundRect(-r, -r, r * 2, r * 2, 12)
 
-    // pita warna melintang
     ctx.save()
-    ctx.beginPath()
-    ctx.arc(0, 0, r, 0, Math.PI * 2)
-    ctx.clip()
-    ctx.fillStyle = color
-    ctx.fillRect(-r, -r * 0.44, r * 2, r * 0.88)
-    ctx.fillStyle = 'rgba(0,0,0,0.12)'
-    ctx.fillRect(-r, r * 0.3, r * 2, r * 0.14)
-    ctx.restore()
-
-    // jendela poster di tengah
-    const pr = r * 0.6
-    ctx.save()
-    ctx.beginPath()
-    ctx.arc(0, 0, pr, 0, Math.PI * 2)
     ctx.clip()
     if (poster) {
       const img = poster.img
       const aspect = img.naturalWidth / Math.max(1, img.naturalHeight)
-      const dw = pr * 2
-      const dh = dw / (aspect || 0.675)
+      let dw = r * 2
+      let dh = dw / (aspect || 0.675)
+      if (dh < r * 2) {
+        dh = r * 2
+        dw = dh * (aspect || 0.675)
+      }
       ctx.drawImage(img, -dw / 2, -dh / 2, dw, dh)
     } else {
-      ctx.fillStyle = '#23423d'
-      ctx.fillRect(-pr, -pr, pr * 2, pr * 2)
-      ctx.fillStyle = '#ffffff'
+      ctx.fillStyle = '#1d1d1f'
+      ctx.fillRect(-r, -r, r * 2, r * 2)
+      ctx.fillStyle = '#6e6e73'
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
-      ctx.font = '600 15px Fredoka, Nunito, sans-serif'
+      ctx.font = '600 16px -apple-system, Inter, system-ui, sans-serif'
       ctx.fillText(String(c.movie.rank), 0, 1)
     }
     ctx.restore()
 
-    // cincin krem di sekeliling jendela
-    ctx.beginPath()
-    ctx.arc(0, 0, pr, 0, Math.PI * 2)
-    ctx.lineWidth = 3
-    ctx.strokeStyle = '#fdfbf3'
-    ctx.stroke()
-
-    // kilau
-    ctx.beginPath()
-    ctx.ellipse(-r * 0.42, -r * 0.48, r * 0.24, r * 0.14, -0.6, 0, Math.PI * 2)
-    ctx.fillStyle = 'rgba(255,255,255,0.8)'
-    ctx.fill()
-
-    // garis tepi tipis
-    ctx.beginPath()
-    ctx.arc(0, 0, r, 0, Math.PI * 2)
-    ctx.lineWidth = 2
-    ctx.strokeStyle = 'rgba(28,58,52,0.22)'
+    // garis rambut, bukan bayangan — sesuai filosofi elevasi sistemnya
+    ctx.strokeStyle = 'rgba(255,255,255,0.16)'
+    ctx.lineWidth = 1.5
     ctx.stroke()
 
     ctx.restore()
@@ -711,102 +673,57 @@ export class ClawGame {
     const x = this.clawX
     const y = this.clawY
 
-    // batang penggantung
-    ctx.strokeStyle = '#c3d0d6'
-    ctx.lineWidth = 5
+    ctx.strokeStyle = '#636366'
+    ctx.lineWidth = 2
     ctx.beginPath()
     ctx.moveTo(x, RAIL_Y)
     ctx.lineTo(x, y - 4)
     ctx.stroke()
-    ctx.strokeStyle = 'rgba(255,255,255,0.55)'
-    ctx.lineWidth = 1.5
-    ctx.beginPath()
-    ctx.moveTo(x - 1.4, RAIL_Y)
-    ctx.lineTo(x - 1.4, y - 4)
-    ctx.stroke()
 
-    // kereta motor di rel
-    const carriage = ctx.createLinearGradient(0, RAIL_Y - 16, 0, RAIL_Y + 8)
-    carriage.addColorStop(0, '#6fa6d8')
-    carriage.addColorStop(1, '#3b6fab')
-    ctx.fillStyle = carriage
+    // kereta
+    ctx.fillStyle = '#8e8e93'
     ctx.beginPath()
-    ctx.roundRect(x - 25, RAIL_Y - 17, 50, 26, 9)
-    ctx.fill()
-    ctx.fillStyle = 'rgba(255,255,255,0.4)'
-    ctx.beginPath()
-    ctx.roundRect(x - 19, RAIL_Y - 13, 38, 6, 3)
+    ctx.roundRect(x - 20, RAIL_Y - 9, 40, 17, 6)
     ctx.fill()
 
-    // kepala capit
-    const head = ctx.createLinearGradient(0, y - 12, 0, y + 12)
-    head.addColorStop(0, '#e6eef3')
-    head.addColorStop(0.5, '#bccbd4')
-    head.addColorStop(1, '#8fa4b1')
-    ctx.fillStyle = head
+    // kepala
+    ctx.fillStyle = '#d1d1d6'
     ctx.beginPath()
-    ctx.roundRect(x - 31, y - 12, 62, 24, 11)
-    ctx.fill()
-    ctx.fillStyle = 'rgba(255,255,255,0.65)'
-    ctx.beginPath()
-    ctx.roundRect(x - 24, y - 8, 48, 6, 3)
+    ctx.roundRect(x - 26, y - 9, 52, 18, 7)
     ctx.fill()
 
-    // jari capit
+    // jari
     const spread = 13 + this.openness * 15
     const tilt = (1 - this.openness) * 0.55
     for (const side of [-1, 1]) {
       ctx.save()
-      ctx.translate(x + side * spread, y + 8)
+      ctx.translate(x + side * spread, y + 7)
       ctx.rotate(side * tilt)
-      const g = ctx.createLinearGradient(-6, 0, 6, 0)
-      g.addColorStop(0, '#eaf1f5')
-      g.addColorStop(0.55, '#bccbd4')
-      g.addColorStop(1, '#8398a6')
-      ctx.fillStyle = g
+      ctx.fillStyle = '#aeaeb2'
       ctx.beginPath()
-      ctx.moveTo(-7, 0)
-      ctx.lineTo(7, 0)
-      ctx.quadraticCurveTo(8, 27, side * 5.5, 42)
-      ctx.quadraticCurveTo(side * 1.5, 47, side * -2, 42)
-      ctx.quadraticCurveTo(-8, 27, -7, 0)
+      ctx.moveTo(-4, 0)
+      ctx.lineTo(4, 0)
+      ctx.quadraticCurveTo(5, 26, side * 4, 40)
+      ctx.quadraticCurveTo(side * 1, 44, side * -2, 40)
+      ctx.quadraticCurveTo(-5, 26, -4, 0)
       ctx.closePath()
       ctx.fill()
-      ctx.strokeStyle = 'rgba(70,100,116,0.35)'
-      ctx.lineWidth = 1.2
-      ctx.stroke()
       ctx.restore()
     }
   }
 
-  /** Pantulan kaca: dua sapuan putih tipis, tanpa glow. */
+  /** Pantulan kaca sangat tipis; tanpa itu kabin terasa seperti lubang kosong. */
   private drawGlass(ctx: CanvasRenderingContext2D) {
     ctx.save()
-    ctx.globalAlpha = 0.09
+    ctx.globalAlpha = 0.035
     ctx.fillStyle = '#ffffff'
     ctx.beginPath()
-    ctx.moveTo(70, 0)
-    ctx.lineTo(178, 0)
-    ctx.lineTo(28, H)
-    ctx.lineTo(-80, H)
+    ctx.moveTo(300, 0)
+    ctx.lineTo(392, 0)
+    ctx.lineTo(214, H)
+    ctx.lineTo(122, H)
     ctx.closePath()
     ctx.fill()
-    ctx.beginPath()
-    ctx.moveTo(228, 0)
-    ctx.lineTo(262, 0)
-    ctx.lineTo(112, H)
-    ctx.lineTo(78, H)
-    ctx.closePath()
-    ctx.fill()
-    ctx.restore()
-
-    // bayangan dalam di tepi kabin
-    ctx.save()
-    const vign = ctx.createLinearGradient(0, 0, 0, 110)
-    vign.addColorStop(0, 'rgba(12,32,29,0.35)')
-    vign.addColorStop(1, 'rgba(12,32,29,0)')
-    ctx.fillStyle = vign
-    ctx.fillRect(0, 0, W, 110)
     ctx.restore()
   }
 }

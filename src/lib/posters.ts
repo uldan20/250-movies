@@ -7,9 +7,9 @@ export type PosterHit = { url: string; source: PosterSource }
 type CacheEntry = { url: string; source: PosterSource; ts: number } | { miss: true; ts: number }
 type Cache = Record<string, CacheEntry>
 
-/** Hit di-cache lama; miss dicoba ulang setelah sehari (mungkin sumbernya cuma sedang down). */
+/** Hit di-cache lama; miss dicoba ulang cepat supaya kegagalan sesaat tidak menempel. */
 const HIT_TTL = 1000 * 60 * 60 * 24 * 30
-const MISS_TTL = 1000 * 60 * 60 * 24
+const MISS_TTL = 1000 * 60 * 30
 
 let cache: Cache | null = null
 let flushTimer: ReturnType<typeof setTimeout> | null = null
@@ -41,6 +41,27 @@ function writeCache(id: string, hit: PosterHit | null) {
   scheduleFlush()
 }
 
+/** Ringkasan isi cache, dipakai panel Pengaturan. */
+export function posterCacheStats(): { hits: number; misses: number } {
+  const c = getCache()
+  let hits = 0
+  let misses = 0
+  for (const entry of Object.values(c)) {
+    if ('miss' in entry) misses++
+    else hits++
+  }
+  return { hits, misses }
+}
+
+/** Hapus hanya catatan kegagalan, supaya yang sudah berhasil tidak diambil ulang. */
+export function retryFailedPosters() {
+  const c = getCache()
+  for (const [id, entry] of Object.entries(c)) {
+    if ('miss' in entry) delete c[id]
+  }
+  writeJSON(KEYS.posters, c)
+}
+
 export function clearPosterCache() {
   cache = {}
   writeJSON(KEYS.posters, cache)
@@ -48,6 +69,13 @@ export function clearPosterCache() {
 
 async function fetchJSON(url: string, signal?: AbortSignal): Promise<any> {
   const res = await fetch(url, { signal })
+  // 429 berarti diminta pelan-pelan, bukan gagal: tunggu sebentar lalu ulangi.
+  if (res.status === 429) {
+    await new Promise((r) => setTimeout(r, 1200))
+    const retry = await fetch(url, { signal })
+    if (!retry.ok) throw new Error(`HTTP ${retry.status}`)
+    return retry.json()
+  }
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   return res.json()
 }
@@ -67,23 +95,43 @@ async function fromTmdb(movie: Movie, key: string, signal?: AbortSignal): Promis
 }
 
 /**
- * Wikipedia: tanpa API key dan mengizinkan CORS lewat origin=*. Artikel film
- * hampir selalu memakai posternya sebagai gambar utama halaman.
+ * Wikipedia: tanpa API key dan mengizinkan CORS lewat origin=*.
+ *
+ * Dua hal yang wajib diperhatikan di sini:
+ *
+ * 1. `pilicense=any`. Parameter ini default-nya `free`, dan poster film di
+ *    Wikipedia hampir seluruhnya non-free (fair use) — tanpa `any`, API
+ *    memang sengaja tidak mengembalikan posternya sama sekali.
+ * 2. Hasil teratas pencarian belum tentu punya gambar (bisa artikel daftar
+ *    atau disambiguasi), jadi ambil beberapa kandidat dan pakai yang pertama
+ *    punya thumbnail, mengikuti urutan relevansi dari `index`.
  */
-async function fromWikipedia(movie: Movie, signal?: AbortSignal): Promise<PosterHit | null> {
-  const search = `${movie.title} ${movie.year} film`
+async function searchWikipedia(query: string, signal?: AbortSignal): Promise<PosterHit | null> {
   const url =
-    'https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*' +
-    '&generator=search&gsrlimit=1&gsrnamespace=0' +
-    `&gsrsearch=${encodeURIComponent(search)}` +
-    '&prop=pageimages&piprop=thumbnail&pithumbsize=400'
+    'https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&redirects=1' +
+    '&generator=search&gsrlimit=5&gsrnamespace=0' +
+    `&gsrsearch=${encodeURIComponent(query)}` +
+    '&prop=pageimages&piprop=thumbnail&pithumbsize=500&pilicense=any'
   const data = await fetchJSON(url, signal)
   const pages = data?.query?.pages
   if (!pages) return null
-  const first: any = Object.values(pages)[0]
-  const src: string | undefined = first?.thumbnail?.source
-  if (!src) return null
-  return { url: src, source: 'wikipedia' }
+
+  const ranked = (Object.values(pages) as any[]).sort(
+    (a, b) => (a?.index ?? 99) - (b?.index ?? 99),
+  )
+  for (const page of ranked) {
+    const src: string | undefined = page?.thumbnail?.source
+    if (src) return { url: src, source: 'wikipedia' }
+  }
+  return null
+}
+
+async function fromWikipedia(movie: Movie, signal?: AbortSignal): Promise<PosterHit | null> {
+  const hit = await searchWikipedia(`${movie.title} ${movie.year} film`, signal)
+  if (hit) return hit
+  // Judul asing dan film yang tahunnya berbeda antar rilis sering meleset
+  // kalau tahunnya ikut dicari; coba sekali lagi tanpa tahun.
+  return searchWikipedia(`${movie.title} film`, signal)
 }
 
 export function getTmdbKey(): string {
@@ -122,7 +170,7 @@ export async function resolvePoster(movie: Movie, signal?: AbortSignal): Promise
   }
 }
 
-/** Antrean dengan batas paralel supaya puluhan kapsul tidak membanjiri API. */
+/** Antrean dengan batas paralel supaya puluhan poster tidak membanjiri API. */
 export function createPosterQueue(concurrency = 4) {
   const pending: Array<() => void> = []
   let active = 0
@@ -154,3 +202,10 @@ export function createPosterQueue(concurrency = 4) {
     })
   }
 }
+
+/**
+ * Satu antrean bersama untuk seluruh halaman. Tanpa ini, satu layar penuh
+ * poster akan menembakkan ratusan permintaan sekaligus — yang justru memicu
+ * pembatasan laju dan membuat sebagian poster gagal dimuat.
+ */
+export const posterQueue = createPosterQueue(4)
