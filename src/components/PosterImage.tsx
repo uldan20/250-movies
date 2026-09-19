@@ -46,30 +46,25 @@ export default function PosterImage({ movie, className = '', rounded = 'rounded-
         alt={`Poster ${movie.title}`}
         loading="lazy"
         onError={() => setFailed(true)}
-        className={`${className} ${rounded} object-cover bg-deep`}
+        className={`${className} ${rounded} bg-glass object-cover`}
       />
     )
   }
 
   return (
     <div
-      className={`${className} ${rounded} relative overflow-hidden flex items-center justify-center`}
-      style={{ background: `linear-gradient(150deg, ${color}33, #0c0620)` }}
+      className={`${className} ${rounded} relative flex items-center justify-center overflow-hidden`}
+      style={{ background: color }}
+      role="img"
       aria-label={`Poster ${movie.title} tidak tersedia`}
-role="img"
     >
-      <div
-        className="absolute inset-0 opacity-25"
-        style={{ background: `radial-gradient(circle at 30% 20%, ${color}, transparent 60%)` }}
-      />
+      <div className="absolute inset-0 bg-ink/35" />
       <div className="relative px-2 text-center">
-        <div className="font-display text-[9px] leading-relaxed" style={{ color }}>
-          #{movie.rank}
-        </div>
-        <div className="mt-1 text-xs font-bold leading-tight text-white/90 line-clamp-3">
+        <div className="font-display text-sm text-cream">#{movie.rank}</div>
+        <div className="mt-1 line-clamp-3 text-xs font-bold leading-tight text-cream/90">
           {movie.title}
         </div>
-        <div className="mt-1 text-[10px] text-white/50">{movie.year}</div>
+        <div className="mt-1 text-[10px] font-semibold text-cream/60">{movie.year}</div>
       </div>
     </div>
   )

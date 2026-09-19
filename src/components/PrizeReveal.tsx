@@ -48,7 +48,7 @@ export default function PrizeReveal({
     try {
       const dataUrl = await buildShareCard(movie)
       if (dataUrl) downloadDataUrl(dataUrl, `arcade250-${movie.id}.png`)
-      else setShareError('Poster menolak diekspor. Kartu tanpa poster bisa dicoba lagi nanti.')
+      else setShareError('Poster menolak diekspor. Coba lagi nanti.')
     } catch {
       setShareError('Gagal membuat kartu.')
     } finally {
@@ -58,48 +58,45 @@ export default function PrizeReveal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-4 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-label={`Kamu mendapat ${movie.title}`}
       onClick={onClose}
     >
       <div
-        className="prize-pop panel relative w-full max-w-lg overflow-hidden rounded-2xl"
-        style={{ borderColor: `${accent}88` }}
+        className="prize-pop card relative w-full max-w-md overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        {tier === 'legendary' && (
-          <div className="tier-legendary-sheen pointer-events-none absolute inset-0 z-10" />
-        )}
-
+        {/* pita tier di kepala kartu, seperti label hadiah */}
         <div
-          className="px-5 py-3 text-center font-display text-[10px]"
-          style={{ background: `${accent}22`, color: accent }}
+          className="flex items-center justify-between px-5 py-3"
+          style={{ background: accent }}
         >
-          {TIER_LABEL[tier]} · PERINGKAT #{movie.rank}
+          <span className="font-display text-sm text-cream">{TIER_LABEL[tier]}</span>
+          <span className="font-display text-lg text-cream">#{movie.rank}</span>
         </div>
 
-        <div className="max-h-[70vh] overflow-y-auto thin-scroll p-5">
+        <div className="thin-scroll max-h-[64vh] overflow-y-auto p-5">
           <div className="flex gap-4">
             <PosterImage
               movie={movie}
-              className="h-44 w-[7.5rem] shrink-0 shadow-lg"
+              className="h-44 w-[7.5rem] shrink-0 shadow-[0_8px_18px_-8px_rgba(35,66,61,0.7)]"
             />
             <div className="min-w-0">
-              <h2 className="text-xl font-bold leading-tight text-white">{movie.title}</h2>
-              <p className="mt-1 text-sm text-white/60">
+              <h2 className="font-display text-xl leading-snug text-ink">{movie.title}</h2>
+              <p className="mt-1 text-sm font-semibold text-ink/60">
                 {movie.year} · {formatRuntime(movie.runtime)}
               </p>
-              <p className="mt-1 text-sm text-white/60">{movie.director}</p>
-              <p className="mt-2 font-display text-[11px]" style={{ color: accent }}>
+              <p className="text-sm font-semibold text-ink/60">{movie.director}</p>
+              <p className="mt-2 inline-block rounded-full bg-orange/20 px-2.5 py-1 text-sm font-bold text-[#b9641a]">
                 ⭐ {movie.rating.toFixed(1)}
               </p>
-              <div className="mt-2 flex flex-wrap gap-1">
+              <div className="mt-2 flex flex-wrap gap-1.5">
                 {movie.genres.map((g) => (
                   <span
                     key={g}
-                    className="rounded-full border border-white/15 px-2 py-0.5 text-[11px] text-white/70"
+                    className="rounded-full bg-ink/8 px-2.5 py-1 text-[11px] font-bold text-ink/65"
                   >
                     {g}
                   </span>
@@ -108,19 +105,24 @@ export default function PrizeReveal({
             </div>
           </div>
 
-          <p className="mt-4 text-sm leading-relaxed text-white/75">{movie.synopsis}</p>
+          <p className="mt-4 text-sm font-semibold leading-relaxed text-ink/75">{movie.synopsis}</p>
 
-          <div className="mt-5 grid grid-cols-2 gap-2">
+          <div className="mt-5 grid grid-cols-2 gap-2.5">
             <button
               onClick={() => {
                 sfx.click()
                 onToggleWatchlist()
               }}
-              className="arcade-btn px-3 py-2.5 text-sm font-semibold"
-              style={{
-                background: inWatchlist ? `${accent}33` : undefined,
-                color: inWatchlist ? accent : undefined,
-              }}
+              className="toy-btn toy-btn--cream px-3 py-3 text-sm"
+              style={
+                inWatchlist
+                  ? {
+                      background: 'linear-gradient(180deg,#f5a44c,#f08a2e)',
+                      color: '#fdfbf3',
+                      boxShadow: '0 5px 0 0 #b9641a, inset 0 2px 0 rgba(255,255,255,0.4)',
+                    }
+                  : undefined
+              }
             >
               {inWatchlist ? '★ Di watchlist' : '☆ Watchlist'}
             </button>
@@ -129,18 +131,23 @@ export default function PrizeReveal({
                 sfx.click()
                 onToggleSeen()
               }}
-              className="arcade-btn px-3 py-2.5 text-sm font-semibold"
-              style={{
-                background: isSeen ? 'rgba(34,211,238,0.2)' : undefined,
-                color: isSeen ? '#22d3ee' : undefined,
-              }}
+              className="toy-btn toy-btn--cream px-3 py-3 text-sm"
+              style={
+                isSeen
+                  ? {
+                      background: 'linear-gradient(180deg,#aeda63,#8cc63f)',
+                      color: '#fdfbf3',
+                      boxShadow: '0 5px 0 0 #4c7a1e, inset 0 2px 0 rgba(255,255,255,0.4)',
+                    }
+                  : undefined
+              }
             >
               {isSeen ? '✓ Sudah ditonton' : 'Tandai ditonton'}
             </button>
             <button
               onClick={handleShare}
               disabled={sharing}
-              className="arcade-btn px-3 py-2.5 text-sm font-semibold"
+              className="toy-btn toy-btn--cream px-3 py-3 text-sm"
             >
               {sharing ? 'Membuat…' : '⬇ Kartu PNG'}
             </button>
@@ -148,23 +155,24 @@ export default function PrizeReveal({
               href={`https://www.imdb.com/find/?q=${encodeURIComponent(`${movie.title} ${movie.year}`)}`}
               target="_blank"
               rel="noreferrer noopener"
-              className="arcade-btn flex items-center justify-center px-3 py-2.5 text-sm font-semibold"
+              className="toy-btn toy-btn--cream flex items-center justify-center px-3 py-3 text-sm"
             >
               Cari di IMDb ↗
             </a>
           </div>
 
-          {shareError && <p className="mt-2 text-xs text-amber-300/80">{shareError}</p>}
+          {shareError && (
+            <p className="mt-2.5 text-xs font-bold text-[#a85a12]">{shareError}</p>
+          )}
         </div>
 
-        <div className="flex gap-2 border-t border-white/10 p-4">
+        <div className="flex gap-2.5 border-t-2 border-ink/10 p-4">
           <button
             onClick={() => {
               sfx.coin()
               onPlayAgain()
             }}
-            className="arcade-btn flex-1 px-4 py-3 font-display text-[11px] text-white"
-            style={{ background: `${accent}33` }}
+            className="toy-btn flex-1 px-4 py-3.5 text-base"
           >
             CAPIT LAGI
           </button>
@@ -173,7 +181,7 @@ export default function PrizeReveal({
               sfx.click()
               onClose()
             }}
-            className="arcade-btn px-4 py-3 text-sm font-semibold text-white/70"
+            className="toy-btn toy-btn--cream px-5 py-3.5 text-sm"
           >
             Tutup
           </button>

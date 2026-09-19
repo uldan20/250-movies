@@ -13,6 +13,36 @@ import { useArcade } from './lib/useArcade'
 type View = 'lobby' | MachineId
 type Panel = 'filters' | 'collection' | 'settings' | null
 
+function HeaderButton({
+  onClick,
+  label,
+  badge,
+  ariaLabel,
+}: {
+  onClick: () => void
+  label: string
+  badge?: number
+  ariaLabel?: string
+}) {
+  return (
+    <button
+      onClick={() => {
+        sfx.click()
+        onClick()
+      }}
+      aria-label={ariaLabel}
+      className="toy-btn toy-btn--cream relative whitespace-nowrap px-3 py-2 text-sm sm:px-3.5"
+    >
+      {label}
+      {badge != null && badge > 0 && (
+        <span className="absolute -right-1 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red text-[10px] font-bold text-cream">
+          {badge}
+        </span>
+      )}
+    </button>
+  )
+}
+
 export default function App() {
   const arcade = useArcade()
   const [view, setView] = useState<View>('lobby')
@@ -30,19 +60,20 @@ export default function App() {
   const activeFilters = countActive(arcade.filters)
 
   return (
-    <div className="arcade-bg scanlines relative min-h-full">
+    <div className={`room relative min-h-full ${view === 'lobby' ? '' : 'room--stage'}`}>
       <div className="relative z-10 flex min-h-screen flex-col">
-        <header className="sticky top-0 z-30 border-b border-white/10 bg-void/80 backdrop-blur">
-          <div className="mx-auto flex w-full max-w-5xl items-center gap-2 px-4 py-3">
+        <header className="sticky top-0 z-30 px-3 pt-3">
+          <div className="mx-auto flex w-full max-w-3xl items-center gap-1.5 rounded-2xl bg-cream/95 px-2.5 py-2.5 sm:gap-2 sm:px-3 shadow-[0_6px_0_-2px_rgba(35,66,61,0.12),0_14px_28px_-16px_rgba(35,66,61,0.5)] backdrop-blur">
             {view === 'lobby' ? (
-              <span className="font-display text-[10px] text-neon-soft neon-text">ARCADE 250</span>
+              <span className="font-display text-base text-ink">Arcade 250</span>
             ) : (
               <button
                 onClick={() => {
                   sfx.click()
                   setView('lobby')
                 }}
-                className="arcade-btn px-3 py-1.5 text-xs font-semibold"
+                aria-label="Kembali ke lobby"
+                className="toy-btn toy-btn--cream whitespace-nowrap px-3 py-2 text-sm sm:px-3.5"
               >
                 ← Lobby
               </button>
@@ -50,44 +81,23 @@ export default function App() {
 
             <div className="ml-auto flex items-center gap-2">
               <span
-                className="rounded-full border border-gold/40 bg-gold/15 px-3 py-1.5 font-display text-[9px] text-gold"
+                className="flex items-center gap-1.5 rounded-full bg-orange/20 px-3 py-2 font-display text-sm text-[#b9641a]"
                 aria-label={`${arcade.coins} koin tersisa`}
               >
-                ⊙ {arcade.coins}
+                <span className="h-3.5 w-3.5 rounded-full border-2 border-[#b9641a]" />
+                {arcade.coins}
               </span>
-              <button
-                onClick={() => {
-                  sfx.click()
-                  setPanel('filters')
-                }}
-                className="arcade-btn relative px-3 py-1.5 text-xs font-semibold"
-              >
-                Filter
-                {activeFilters > 0 && (
-                  <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-neon text-[10px] font-bold text-white">
-                    {activeFilters}
-                  </span>
-                )}
-              </button>
-              <button
-                onClick={() => {
-                  sfx.click()
-                  setPanel('collection')
-                }}
-                className="arcade-btn px-3 py-1.5 text-xs font-semibold"
-              >
-                Koleksi
-              </button>
-              <button
-                onClick={() => {
-                  sfx.click()
-                  setPanel('settings')
-                }}
-                className="arcade-btn px-3 py-1.5 text-xs font-semibold"
-                aria-label="Pengaturan"
-              >
-                ⚙
-              </button>
+              <HeaderButton
+                onClick={() => setPanel('filters')}
+                label="Filter"
+                badge={activeFilters}
+              />
+              <HeaderButton onClick={() => setPanel('collection')} label="Koleksi" />
+              <HeaderButton
+                onClick={() => setPanel('settings')}
+                label="⚙"
+                ariaLabel="Pengaturan"
+              />
             </div>
           </div>
         </header>
@@ -96,7 +106,7 @@ export default function App() {
           {view === 'lobby' ? (
             <Lobby poolSize={arcade.pool.length} onEnter={(id) => setView(id)} />
           ) : (
-            <div className="px-4 py-6">
+            <div className="px-4 pb-10 pt-6">
               <ClawMachine
                 pool={arcade.pool}
                 coins={arcade.coins}
@@ -109,7 +119,7 @@ export default function App() {
           )}
         </main>
 
-        <footer className="px-4 py-6 text-center text-[11px] leading-relaxed text-white/25">
+        <footer className="relative z-10 px-6 pb-6 pt-2 text-center text-[11px] font-semibold leading-relaxed text-ink/45">
           Daftar film adalah snapshot statis IMDb Top 250 — peringkat dan rating bisa berbeda dari
           IMDb hari ini. Poster diambil dari Wikipedia atau TMDB langsung di browsermu.
         </footer>

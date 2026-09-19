@@ -20,7 +20,7 @@ console.log('koin awal:', start)
 
 for (let i = 0; i < 10 && (await coins()) > 0; i++) {
   // tunggu mesin benar-benar menganggur
-  for (let w = 0; w < 60 && !(await phase()).startsWith('Geser derek'); w++) await page.waitForTimeout(200)
+  for (let w = 0; w < 60 && !(await phase()).startsWith('GESER LALU'); w++) await page.waitForTimeout(200)
 
   const dir = i % 2 ? 'ArrowLeft' : 'ArrowRight'
   await page.keyboard.down(dir); await page.waitForTimeout(100 + Math.random() * 600); await page.keyboard.up(dir)
@@ -35,7 +35,7 @@ for (let i = 0; i < 10 && (await coins()) > 0; i++) {
   let won = false
   for (let w = 0; w < 110; w++) {
     if ((await modal().count()) > 0) { won = true; break }
-    if ((await phase()).startsWith('Geser derek')) break
+    if ((await phase()).startsWith('GESER LALU')) break
     await page.waitForTimeout(200)
   }
   if (won) {

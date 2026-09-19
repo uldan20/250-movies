@@ -24,8 +24,8 @@ export const TIER_LABEL: Record<Tier, string> = {
 
 /** Warna utama tiap tier (hex), dipakai canvas maupun CSS. */
 export const TIER_COLOR: Record<Tier, string> = {
-  legendary: '#ffc53d',
-  epic: '#c084fc',
-  rare: '#38bdf8',
-  common: '#5eead4',
+  legendary: '#f0a030',
+  epic: '#9b59b6',
+  rare: '#3b82c4',
+  common: '#6bbe4e',
 }

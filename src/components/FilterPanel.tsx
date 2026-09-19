@@ -34,15 +34,19 @@ function Chip({
         onClick()
       }}
       aria-pressed={active}
-      className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+      className={`rounded-full px-3.5 py-2 text-xs font-bold transition ${
         active
-          ? 'border-neon bg-neon/25 text-white'
-          : 'border-white/15 text-white/60 hover:border-white/35 hover:text-white/85'
+          ? 'bg-cab text-cream shadow-[0_3px_0_var(--color-cab-base)]'
+          : 'bg-ink/8 text-ink/65 hover:bg-ink/15'
       }`}
     >
       {children}
     </button>
   )
+}
+
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return <h3 className="mb-2.5 font-display text-sm text-ink/70">{children}</h3>
 }
 
 export default function FilterPanel({ open, filters, matchCount, onChange, onClose }: Props) {
@@ -67,19 +71,20 @@ export default function FilterPanel({ open, filters, matchCount, onChange, onClo
   return (
     <SlideOver
       open={open}
-      title="FILTER MESIN"
+      title="Filter mesin"
       onClose={onClose}
       footer={
         <div className="flex items-center justify-between gap-3">
-          <p className="text-sm text-white/60">
-            <strong className="text-white">{matchCount}</strong> film masuk kabin
+          <p className="text-sm font-semibold text-ink/65">
+            <strong className="font-display text-base text-ink">{matchCount}</strong> film masuk
+            kabin
           </p>
           <button
             onClick={() => {
               sfx.click()
               onChange(DEFAULT_FILTERS)
             }}
-            className="arcade-btn px-4 py-2 text-sm font-semibold"
+            className="toy-btn toy-btn--cream px-4 py-2.5 text-sm"
           >
             Reset
           </button>
@@ -87,13 +92,13 @@ export default function FilterPanel({ open, filters, matchCount, onChange, onClo
       }
     >
       {matchCount === 0 && (
-        <p className="mb-4 rounded-lg border border-amber-400/40 bg-amber-400/10 px-3 py-2 text-sm text-amber-200">
+        <p className="mb-5 rounded-xl bg-orange/20 px-4 py-3 text-sm font-semibold text-[#a85a12]">
           Tidak ada film yang cocok. Longgarkan filternya supaya kabin bisa diisi.
         </p>
       )}
 
-      <section className="mb-6">
-        <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-white/45">Genre</h3>
+      <section className="mb-7">
+        <SectionTitle>Genre</SectionTitle>
         <div className="flex flex-wrap gap-2">
           {ALL_GENRES.map((g) => (
             <Chip key={g} active={filters.genres.includes(g)} onClick={() => toggleGenre(g)}>
@@ -103,8 +108,8 @@ export default function FilterPanel({ open, filters, matchCount, onChange, onClo
         </div>
       </section>
 
-      <section className="mb-6">
-        <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-white/45">Dekade</h3>
+      <section className="mb-7">
+        <SectionTitle>Dekade</SectionTitle>
         <div className="flex flex-wrap gap-2">
           {ALL_DECADES.map((d) => (
             <Chip key={d} active={filters.decades.includes(d)} onClick={() => toggleDecade(d)}>
@@ -114,10 +119,10 @@ export default function FilterPanel({ open, filters, matchCount, onChange, onClo
         </div>
       </section>
 
-      <section className="mb-6">
-        <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-white/45">
-          Rating minimal: <span className="text-white">{filters.minRating.toFixed(1)}</span>
-        </h3>
+      <section className="mb-7">
+        <SectionTitle>
+          Rating minimal: <span className="text-ink">{filters.minRating.toFixed(1)}</span>
+        </SectionTitle>
         <input
           type="range"
           min={0}
@@ -125,13 +130,13 @@ export default function FilterPanel({ open, filters, matchCount, onChange, onClo
           step={0.1}
           value={filters.minRating}
           onChange={(e) => onChange({ ...filters, minRating: Number(e.target.value) })}
-          className="w-full accent-[#ec4899]"
+          className="w-full accent-[#8cc63f]"
           aria-label="Rating IMDb minimal"
         />
       </section>
 
-      <section className="mb-6">
-        <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-white/45">Durasi</h3>
+      <section className="mb-7">
+        <SectionTitle>Durasi</SectionTitle>
         <div className="flex flex-wrap gap-2">
           {RUNTIME_OPTIONS.map((opt) => (
             <Chip
@@ -146,12 +151,12 @@ export default function FilterPanel({ open, filters, matchCount, onChange, onClo
       </section>
 
       <section>
-        <label className="flex cursor-pointer items-center gap-3 text-sm text-white/75">
+        <label className="flex cursor-pointer items-center gap-3 text-sm font-semibold text-ink/80">
           <input
             type="checkbox"
             checked={filters.hideSeen}
             onChange={(e) => onChange({ ...filters, hideSeen: e.target.checked })}
-            className="h-4 w-4 accent-[#ec4899]"
+            className="h-4 w-4 accent-[#8cc63f]"
           />
           Sembunyikan film yang sudah saya tonton
         </label>

@@ -34,14 +34,14 @@ function Row({
 }) {
   const accent = TIER_COLOR[tierOf(movie.rank)]
   return (
-    <li className="flex gap-3 border-b border-white/8 py-3 last:border-0">
-      <PosterImage movie={movie} className="h-20 w-[3.4rem] shrink-0" rounded="rounded-md" />
+    <li className="flex gap-3 border-b-2 border-ink/8 py-3 last:border-0">
+      <PosterImage movie={movie} className="h-20 w-[3.4rem] shrink-0" rounded="rounded-lg" />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold text-white">{movie.title}</p>
-        <p className="text-xs text-white/50">
+        <p className="truncate text-sm font-bold text-ink">{movie.title}</p>
+        <p className="text-xs font-semibold text-ink/55">
           {movie.year} · {formatRuntime(movie.runtime)} · ⭐ {movie.rating.toFixed(1)}
         </p>
-        <p className="mt-0.5 font-display text-[9px]" style={{ color: accent }}>
+        <p className="mt-0.5 font-display text-xs" style={{ color: accent }}>
           #{movie.rank}
         </p>
         <div className="mt-2 flex gap-2">
@@ -50,8 +50,8 @@ function Row({
               sfx.click()
               onToggleWatchlist()
             }}
-            className={`rounded-md border px-2 py-1 text-[11px] font-semibold ${
-              inWatchlist ? 'border-neon bg-neon/20 text-neon-soft' : 'border-white/15 text-white/55'
+            className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${
+              inWatchlist ? 'bg-orange text-cream' : 'bg-ink/8 text-ink/60'
             }`}
           >
             {inWatchlist ? '★ Watchlist' : '☆ Watchlist'}
@@ -61,8 +61,8 @@ function Row({
               sfx.click()
               onToggleSeen()
             }}
-            className={`rounded-md border px-2 py-1 text-[11px] font-semibold ${
-              isSeen ? 'border-cyan bg-cyan/20 text-cyan' : 'border-white/15 text-white/55'
+            className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${
+              isSeen ? 'bg-cab text-cream' : 'bg-ink/8 text-ink/60'
             }`}
           >
             {isSeen ? '✓ Ditonton' : 'Tandai'}
@@ -90,8 +90,8 @@ export default function CollectionPanel({
   const movies = ids.map((id) => MOVIES_BY_ID.get(id)).filter((m): m is Movie => m != null)
 
   return (
-    <SlideOver open={open} title="KOLEKSI" onClose={onClose}>
-      <div className="mb-4 flex gap-2">
+    <SlideOver open={open} title="Koleksi" onClose={onClose}>
+      <div className="mb-4 flex gap-2 rounded-full bg-ink/8 p-1">
         {(
           [
             ['history', `Riwayat (${historyIds.length})`],
@@ -105,10 +105,8 @@ export default function CollectionPanel({
               setTab(key)
             }}
             aria-pressed={tab === key}
-            className={`flex-1 rounded-lg border px-3 py-2 text-xs font-bold transition ${
-              tab === key
-                ? 'border-neon bg-neon/20 text-white'
-                : 'border-white/12 text-white/55 hover:text-white/80'
+            className={`flex-1 rounded-full px-3 py-2 text-xs font-bold transition ${
+              tab === key ? 'bg-cream text-ink shadow-sm' : 'text-ink/55'
             }`}
           >
             {label}
@@ -117,7 +115,7 @@ export default function CollectionPanel({
       </div>
 
       {movies.length === 0 ? (
-        <p className="py-10 text-center text-sm text-white/45">
+        <p className="py-12 text-center text-sm font-semibold text-ink/45">
           {tab === 'history'
             ? 'Belum ada film yang berhasil dicapit.'
             : 'Watchlist masih kosong. Tandai film dari layar hadiah.'}

@@ -10,6 +10,10 @@ type Props = {
   onResetProgress: () => void
 }
 
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return <h3 className="mb-2.5 font-display text-sm text-ink/70">{children}</h3>
+}
+
 export default function SettingsPanel({ open, onClose, onResetProgress }: Props) {
   const [key, setKey] = useState(getTmdbKey)
   const [muted, setMuted] = useState(sfx.muted)
@@ -25,10 +29,10 @@ export default function SettingsPanel({ open, onClose, onResetProgress }: Props)
   }
 
   return (
-    <SlideOver open={open} title="PENGATURAN" onClose={onClose}>
-      <section className="mb-7">
-        <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-white/45">Suara</h3>
-        <label className="flex cursor-pointer items-center gap-3 text-sm text-white/75">
+    <SlideOver open={open} title="Pengaturan" onClose={onClose}>
+      <section className="mb-8">
+        <SectionTitle>Suara</SectionTitle>
+        <label className="flex cursor-pointer items-center gap-3 text-sm font-semibold text-ink/80">
           <input
             type="checkbox"
             checked={!muted}
@@ -38,17 +42,15 @@ export default function SettingsPanel({ open, onClose, onResetProgress }: Props)
               sfx.setMuted(next)
               if (!next) sfx.click()
             }}
-            className="h-4 w-4 accent-[#ec4899]"
+            className="h-4 w-4 accent-[#8cc63f]"
           />
           Efek suara arcade
         </label>
       </section>
 
-      <section className="mb-7">
-        <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-white/45">
-          Sumber poster
-        </h3>
-        <p className="mb-3 text-sm leading-relaxed text-white/60">
+      <section className="mb-8">
+        <SectionTitle>Sumber poster</SectionTitle>
+        <p className="mb-3 text-sm font-semibold leading-relaxed text-ink/60">
           Tanpa pengaturan apa pun, poster diambil dari Wikipedia — gratis dan tanpa kunci. Kalau
           kamu punya API key TMDB (gratis), tempel di sini untuk poster yang lebih rapi dan lebih
           lengkap.
@@ -60,32 +62,34 @@ export default function SettingsPanel({ open, onClose, onResetProgress }: Props)
           placeholder="TMDB API key (opsional)"
           autoComplete="off"
           spellCheck={false}
-          className="w-full rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-sm text-white placeholder:text-white/30 focus:border-neon focus:outline-none"
+          className="w-full rounded-xl bg-ink/8 px-3.5 py-2.5 text-sm font-semibold text-ink placeholder:text-ink/35 focus:bg-ink/12 focus:outline-2 focus:outline-cab"
         />
-        {saved && <p className="mt-2 text-xs text-cyan">Tersimpan. Cache poster dibersihkan.</p>}
-        <p className="mt-2 text-xs text-white/35">
+        {saved && (
+          <p className="mt-2 text-xs font-bold text-[#4c7a1e]">
+            Tersimpan. Cache poster dibersihkan.
+          </p>
+        )}
+        <p className="mt-2 text-xs font-semibold text-ink/40">
           Key disimpan hanya di browser ini (localStorage) dan tidak pernah dikirim ke mana pun
           selain TMDB.
         </p>
       </section>
 
-      <section className="mb-7">
-        <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-white/45">Cache</h3>
+      <section className="mb-8">
+        <SectionTitle>Cache</SectionTitle>
         <button
           onClick={() => {
             sfx.click()
             clearPosterCache()
           }}
-          className="arcade-btn w-full px-4 py-2.5 text-sm font-semibold"
+          className="toy-btn toy-btn--cream w-full px-4 py-3 text-sm"
         >
           Bersihkan cache poster
         </button>
       </section>
 
       <section>
-        <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-white/45">
-          Zona berbahaya
-        </h3>
+        <SectionTitle>Zona berbahaya</SectionTitle>
         <button
           onClick={() => {
             if (window.confirm('Hapus riwayat, watchlist, tanda ditonton, dan reset koin?')) {
@@ -93,7 +97,11 @@ export default function SettingsPanel({ open, onClose, onResetProgress }: Props)
               onResetProgress()
             }
           }}
-          className="arcade-btn w-full border-red-400/40 px-4 py-2.5 text-sm font-semibold text-red-300"
+          className="toy-btn w-full bg-red px-4 py-3 text-sm"
+          style={{
+            background: 'linear-gradient(180deg, #ef6257, #e4453a)',
+            boxShadow: '0 5px 0 0 #a82f27, inset 0 2px 0 rgba(255,255,255,0.4)',
+          }}
         >
           Reset semua progres
         </button>

@@ -22,6 +22,17 @@ Hasil build sepenuhnya statis — bisa langsung ditaruh di GitHub Pages, Netlify
 atau hosting statis mana pun. `base` di `vite.config.ts` sudah relatif, jadi
 situs tetap jalan dari sub-path.
 
+## Tampilan
+
+Gaya visualnya ilustrasi datar ala mesin arcade sungguhan: kabinet hijau apel,
+marquee navy bergaris luar oranye, bingkai kayu, dek kontrol krem dengan
+joystick dan tombol arcade, serta bola-bola mainan putih bergaris warna di
+dalam kabin. Kabinet berdiri di atas lantai kayu berkarpet, diapit tirai.
+Tipografi memakai Fredoka untuk papan nama dan Nunito untuk teks.
+
+Warna pita tiap bola menandakan tier peringkatnya: oranye untuk sepuluh besar,
+ungu untuk 11-50, biru untuk 51-120, hijau untuk sisanya.
+
 ## Cara mesinnya bekerja
 
 Derek digerakkan dengan `◀ ▶` lalu diturunkan dengan `TURUN` (keyboard: panah
@@ -113,8 +124,9 @@ lain lewat `BASE_URL`.
 ## Aksesibilitas
 
 Seluruh permainan bisa dijalankan dari keyboard. Perubahan fase derek diumumkan
-lewat `role="status"` + `aria-live`. `prefers-reduced-motion` mematikan scanline,
-guncangan layar, dan kilatan kemenangan — physics dan permainannya tetap utuh.
+lewat `role="status"` + `aria-live`. `prefers-reduced-motion` mematikan lampu
+berkedip, guncangan layar, dan kilatan kemenangan — physics dan permainannya
+tetap utuh.
 Situs tidak punya scroll horizontal di lebar ponsel.
 
 ## Mesin berikutnya

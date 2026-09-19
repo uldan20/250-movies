@@ -1,22 +1,33 @@
 @import 'tailwindcss';
 
+/*
+ * Palet diambil dari referensi ilustrasi arcade: dinding mint, kabinet hijau
+ * apel, marquee navy, bingkai kayu, dan aksen merah/oranye pada dek kontrol.
+ */
 @theme {
-  --color-void: #08040f;
-  --color-deep: #10082a;
-  --color-panel: #170d33;
-  --color-neon: #ec4899;
-  --color-neon-soft: #f472b6;
-  --color-cyan: #22d3ee;
-  --color-violet: #a855f7;
-  --color-gold: #ffc53d;
-  --font-display: 'Press Start 2P', monospace;
-  --font-body: 'Space Grotesk', system-ui, sans-serif;
-}
+  --color-wall: #9eddd8;
+  --color-wall-deep: #7ccac6;
+  --color-curtain: #62bfba;
+  --color-curtain-dark: #46a8a3;
+  --color-floor: #f3e4cb;
+  --color-floor-line: #ddc4a0;
+  --color-mat: #e8833a;
+  --color-cab: #8cc63f;
+  --color-cab-dark: #6b9e2c;
+  --color-cab-light: #aeda63;
+  --color-cab-base: #4c7a1e;
+  --color-navy: #1e3a6e;
+  --color-navy-dark: #152a52;
+  --color-wood: #9c6b3f;
+  --color-wood-dark: #74512f;
+  --color-glass: #3c6e66;
+  --color-cream: #fdfbf3;
+  --color-ink: #23423d;
+  --color-red: #e4453a;
+  --color-orange: #f08a2e;
 
-:root {
-  color-scheme: dark;
-  --glow-neon: 0 0 12px rgba(236, 72, 153, 0.65);
-  --glow-cyan: 0 0 12px rgba(34, 211, 238, 0.6);
+  --font-display: 'Fredoka', 'Nunito', system-ui, sans-serif;
+  --font-body: 'Nunito', system-ui, sans-serif;
 }
 
 html,
@@ -27,141 +38,257 @@ body,
 
 body {
   margin: 0;
-  background: var(--color-void);
-  color: #ece9ff;
+  background: var(--color-wall);
+  color: var(--color-ink);
   font-family: var(--font-body);
+  font-weight: 600;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior: none;
 }
 
 .font-display {
   font-family: var(--font-display);
-  letter-spacing: 0.02em;
-  line-height: 1.6;
+  font-weight: 600;
 }
 
-/* Kabut neon di latar seluruh halaman. */
-.arcade-bg::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse 70% 55% at 15% 0%, rgba(236, 72, 153, 0.22), transparent 60%),
-    radial-gradient(ellipse 60% 50% at 85% 10%, rgba(34, 211, 238, 0.16), transparent 62%),
-    radial-gradient(ellipse 90% 60% at 50% 105%, rgba(168, 85, 247, 0.2), transparent 65%);
-  z-index: 0;
-}
-
-/* Scanline CRT — dimatikan kalau pengguna minta animasi dikurangi. */
-.scanlines::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 60;
-  background: repeating-linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0) 0px,
-    rgba(0, 0, 0, 0) 2px,
-    rgba(0, 0, 0, 0.22) 3px,
-    rgba(0, 0, 0, 0.22) 4px
-  );
-  mix-blend-mode: multiply;
-}
-
-.neon-text {
-  text-shadow:
-    0 0 6px rgba(236, 72, 153, 0.9),
-    0 0 22px rgba(236, 72, 153, 0.55);
-}
-
-.neon-text-cyan {
-  text-shadow:
-    0 0 6px rgba(34, 211, 238, 0.9),
-    0 0 22px rgba(34, 211, 238, 0.5);
-}
-
-.panel {
-  background: linear-gradient(160deg, rgba(37, 20, 74, 0.92), rgba(12, 6, 28, 0.94));
-  border: 1px solid rgba(168, 85, 247, 0.32);
-  box-shadow:
-    0 0 0 1px rgba(8, 4, 15, 0.8),
-    0 18px 50px -20px rgba(168, 85, 247, 0.5);
-}
-
-/* Tombol kabinet: punya permukaan atas dan bibir bawah, jadi terasa ditekan. */
-.arcade-btn {
+/* Ruangan: dinding mint, tirai di kedua sisi, lantai kayu dengan karpet oranye. */
+.room {
   position: relative;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0));
+  /* Pita lantai sengaja melebar 100vw; clip menahannya tanpa merusak sticky
+     pada header (berbeda dengan overflow: hidden). */
+  overflow-x: clip;
+  background:
+    linear-gradient(180deg, var(--color-wall) 0%, var(--color-wall-deep) 62%, var(--color-wall-deep) 100%);
+}
+
+.room--stage::before {
+  content: '';
+  position: fixed;
+  inset: 0 0 0 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    /* tirai kiri */
+    repeating-linear-gradient(
+      90deg,
+      var(--color-curtain) 0 14px,
+      var(--color-curtain-dark) 14px 28px
+    ),
+    none;
+  -webkit-mask-image: linear-gradient(90deg, #000 0 96px, transparent 96px);
+  mask-image: linear-gradient(90deg, #000 0 96px, transparent 96px);
+  opacity: 0.85;
+}
+
+.room--stage::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--color-curtain) 0 14px,
+    var(--color-curtain-dark) 14px 28px
+  );
+  -webkit-mask-image: linear-gradient(270deg, #000 0 96px, transparent 96px);
+  mask-image: linear-gradient(270deg, #000 0 96px, transparent 96px);
+  opacity: 0.85;
+}
+
+/* Lantai kayu tempat kabinet berdiri, digambar di belakangnya. */
+.floor-band {
+  background: repeating-linear-gradient(
+    90deg,
+    var(--color-floor) 0 58px,
+    var(--color-floor-line) 58px 60px
+  );
+  box-shadow: inset 0 4px 0 rgba(0, 0, 0, 0.09);
+}
+
+.floor-band::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 14px;
+  width: min(560px, 88vw);
+  height: calc(100% - 14px);
+  transform: translateX(-50%);
+  background: var(--color-mat);
+  border-radius: 14px 14px 0 0;
+  box-shadow: inset 0 4px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* Teks marquee: krem dengan garis luar oranye tua, seperti papan nama arcade. */
+.marquee-text--sm {
+  color: var(--color-cream);
+  text-shadow:
+    1px 0 0 #c96a16,
+    -1px 0 0 #c96a16,
+    0 1px 0 #c96a16,
+    0 -1px 0 #c96a16,
+    0 2px 0 rgba(0, 0, 0, 0.25);
+  letter-spacing: 0.03em;
+}
+
+.marquee-text {
+  color: var(--color-cream);
+  text-shadow:
+    2px 0 0 #c96a16,
+    -2px 0 0 #c96a16,
+    0 2px 0 #c96a16,
+    0 -2px 0 #c96a16,
+    2px 2px 0 #c96a16,
+    -2px 2px 0 #c96a16,
+    2px -2px 0 #c96a16,
+    -2px -2px 0 #c96a16,
+    0 3px 0 rgba(0, 0, 0, 0.2);
+  letter-spacing: 0.04em;
+}
+
+/* Tombol mainan: permukaan atas + bibir tebal, benar-benar tertekan saat ditekan. */
+.toy-btn {
+  position: relative;
+  border: none;
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--color-cream);
+  background: linear-gradient(180deg, var(--color-cab-light), var(--color-cab));
   box-shadow:
-    0 6px 0 0 rgba(0, 0, 0, 0.55),
-    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+    0 6px 0 0 var(--color-cab-base),
+    0 9px 14px -4px rgba(35, 66, 61, 0.45),
+    inset 0 2px 0 rgba(255, 255, 255, 0.5);
   transition:
-    transform 80ms ease,
-    box-shadow 80ms ease,
-    filter 120ms ease;
+    transform 90ms ease,
+    box-shadow 90ms ease,
+    filter 140ms ease;
   touch-action: manipulation;
   user-select: none;
+  cursor: pointer;
 }
 
-.arcade-btn:active:not(:disabled),
-.arcade-btn[data-pressed='true'] {
+.toy-btn:active:not(:disabled),
+.toy-btn[data-pressed='true'] {
   transform: translateY(5px);
   box-shadow:
-    0 1px 0 0 rgba(0, 0, 0, 0.55),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    0 1px 0 0 var(--color-cab-base),
+    0 2px 6px -2px rgba(35, 66, 61, 0.45),
+    inset 0 2px 0 rgba(255, 255, 255, 0.35);
 }
 
-.arcade-btn:disabled {
-  opacity: 0.4;
-  filter: grayscale(0.6);
+.toy-btn:disabled {
+  filter: saturate(0.35) brightness(1.06);
+  cursor: default;
 }
 
-.arcade-btn:focus-visible {
-  outline: 3px solid var(--color-cyan);
+.toy-btn:focus-visible {
+  outline: 3px solid var(--color-navy);
   outline-offset: 3px;
 }
 
-/* Marquee kabinet dengan lampu berkedip. */
-@keyframes marquee-pulse {
+/* Varian netral untuk tombol di luar kabinet. */
+.toy-btn--cream {
+  color: var(--color-ink);
+  background: linear-gradient(180deg, #ffffff, var(--color-cream));
+  box-shadow:
+    0 5px 0 0 #cbbfa6,
+    0 8px 12px -5px rgba(35, 66, 61, 0.35),
+    inset 0 2px 0 rgba(255, 255, 255, 0.9);
+}
+
+.toy-btn--cream:active:not(:disabled),
+.toy-btn--cream[data-pressed='true'] {
+  box-shadow:
+    0 1px 0 0 #cbbfa6,
+    0 2px 5px -2px rgba(35, 66, 61, 0.3),
+    inset 0 2px 0 rgba(255, 255, 255, 0.8);
+}
+
+/* Tombol arcade bundar di dek kontrol. */
+.arcade-knob {
+  position: relative;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  transition:
+    transform 80ms ease,
+    box-shadow 80ms ease;
+}
+
+.arcade-knob::after {
+  content: '';
+  position: absolute;
+  inset: 18%;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0));
+}
+
+.arcade-knob:active:not(:disabled),
+.arcade-knob[data-pressed='true'] {
+  transform: translateY(4px);
+}
+
+.arcade-knob:disabled {
+  filter: saturate(0.3) brightness(1.1);
+  cursor: default;
+}
+
+.arcade-knob:focus-visible {
+  outline: 3px solid var(--color-navy);
+  outline-offset: 3px;
+}
+
+/* Kartu putih dengan bibir bawah, dipakai panel dan kartu hadiah. */
+.card {
+  background: var(--color-cream);
+  border-radius: 22px;
+  box-shadow:
+    0 10px 0 -2px rgba(35, 66, 61, 0.1),
+    0 22px 44px -18px rgba(35, 66, 61, 0.55);
+}
+
+/* Badan kabinet. */
+.cabinet {
+  background: linear-gradient(180deg, var(--color-cab-light) 0%, var(--color-cab) 45%, var(--color-cab-dark) 100%);
+  border-radius: 26px 26px 14px 14px;
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -6px 0 rgba(0, 0, 0, 0.12),
+    0 26px 48px -22px rgba(35, 66, 61, 0.7);
+}
+
+.wood-frame {
+  background: linear-gradient(180deg, var(--color-wood) 0%, var(--color-wood-dark) 100%);
+  border-radius: 16px;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.28),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.25);
+}
+
+/* Lampu kecil berkedip di badan kabinet. */
+@keyframes led-blink {
   0%,
   100% {
     opacity: 1;
-    filter: brightness(1.1);
   }
   50% {
-    opacity: 0.72;
-    filter: brightness(0.9);
+    opacity: 0.35;
   }
 }
 
-.marquee-glow {
-  animation: marquee-pulse 2.6s ease-in-out infinite;
-}
-
-@keyframes float-slow {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-7px);
-  }
-}
-
-.float-slow {
-  animation: float-slow 5s ease-in-out infinite;
+.led {
+  animation: led-blink 1.4s ease-in-out infinite;
 }
 
 @keyframes prize-pop {
   0% {
-    transform: scale(0.82) translateY(24px);
+    transform: scale(0.84) translateY(20px);
     opacity: 0;
   }
-  62% {
+  60% {
     transform: scale(1.03) translateY(-4px);
     opacity: 1;
   }
@@ -172,36 +299,21 @@ body {
 }
 
 .prize-pop {
-  animation: prize-pop 480ms cubic-bezier(0.22, 1.2, 0.36, 1) both;
+  animation: prize-pop 460ms cubic-bezier(0.22, 1.2, 0.36, 1) both;
 }
 
-@keyframes shimmer {
-  0% {
-    background-position: -220% 0;
-  }
+@keyframes bob {
+  0%,
   100% {
-    background-position: 220% 0;
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
   }
 }
 
-.tier-legendary-sheen {
-  background-image: linear-gradient(
-    110deg,
-    transparent 30%,
-    rgba(255, 197, 61, 0.45) 48%,
-    transparent 66%
-  );
-  background-size: 220% 100%;
-  animation: shimmer 2.4s linear infinite;
-}
-
-.cabinet-frame {
-  background:
-    linear-gradient(180deg, #2b1a55 0%, #1a0f38 42%, #120a28 100%);
-  border: 1px solid rgba(236, 72, 153, 0.4);
-  box-shadow:
-    inset 0 2px 0 rgba(255, 255, 255, 0.12),
-    0 30px 70px -28px rgba(236, 72, 153, 0.55);
+.bob {
+  animation: bob 4.5s ease-in-out infinite;
 }
 
 .thin-scroll::-webkit-scrollbar {
@@ -209,7 +321,7 @@ body {
   height: 8px;
 }
 .thin-scroll::-webkit-scrollbar-thumb {
-  background: rgba(168, 85, 247, 0.45);
+  background: rgba(35, 66, 61, 0.28);
   border-radius: 99px;
 }
 .thin-scroll::-webkit-scrollbar-track {
@@ -223,8 +335,5 @@ body {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
-  }
-  .scanlines::after {
-    display: none;
   }
 }

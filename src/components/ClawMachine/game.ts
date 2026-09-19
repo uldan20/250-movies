@@ -17,17 +17,17 @@ export type GamePhase =
 
 /** Dunia dipakai dalam satuan logis lalu diskalakan ke ukuran canvas. */
 const W = 620
-const H = 720
+const H = 640
 const WALL = 14
-const FLOOR_Y = 640
-const DIVIDER_X = 152
+const FLOOR_Y = 596
+const DIVIDER_X = 168
 /** Puncak sekat: cukup tinggi untuk menutup lubang, tetap di bawah lintasan derek. */
-const DIVIDER_TOP = 300
-const RAIL_Y = 96
-const CLAW_HOME_X = 82
-const CLAW_MIN_X = 198
+const DIVIDER_TOP = 292
+const RAIL_Y = 74
+const CLAW_HOME_X = 95
+const CLAW_MIN_X = 214
 const CLAW_MAX_X = W - 58
-const CLAW_TOP_Y = 150
+const CLAW_TOP_Y = 124
 const CAPSULE_R = 26
 const MAX_CAPSULES = 40
 const CARRIAGE_SPEED = 3.4
@@ -281,7 +281,7 @@ export class ClawGame {
       case 'idle': {
         // Setelah mengantar hadiah derek berhenti di atas lubang; luncurkan
         // kembali ke tepi arena supaya tekan tombol pertama tidak membuatnya melompat.
-        if (this.clawX < CLAW_MIN_X) {
+        if (this.clawX < CLAW_MIN_X && performance.now() >= this.settleUntil) {
           this.clawX += (CLAW_MIN_X - this.clawX) * 0.12
           if (CLAW_MIN_X - this.clawX < 0.6) this.clawX = CLAW_MIN_X
         }
@@ -519,135 +519,190 @@ export class ClawGame {
     if (this.shake > 0) this.shake = Math.max(0, this.shake - 0.4)
     ctx.setTransform(scale, 0, 0, scale, offX + shakeX, offY + shakeY)
 
-    this.drawCabinet(ctx)
-    for (const c of this.capsules) this.drawCapsule(ctx, c)
+    this.drawCabin(ctx)
+    this.drawChuteBack(ctx)
+    for (const c of this.capsules) this.drawBall(ctx, c)
+    // Dinding depan tabung digambar setelah bola, supaya bola yang masuk
+    // benar-benar terlihat hilang ke dalam tabung.
+    this.drawChuteFront(ctx)
     this.drawClaw(ctx)
     this.drawGlass(ctx)
 
     if (this.flash > 0) {
-      ctx.fillStyle = `rgba(255,255,255,${this.flash * 0.35})`
+      ctx.fillStyle = `rgba(255,255,255,${this.flash * 0.3})`
       ctx.fillRect(0, 0, W, H)
       this.flash = Math.max(0, this.flash - 0.06)
     }
   }
 
-  private drawCabinet(ctx: CanvasRenderingContext2D) {
+  /** Dinding dan lantai bagian dalam kabin, plus rel derek. */
+  private drawCabin(ctx: CanvasRenderingContext2D) {
     const bg = ctx.createLinearGradient(0, 0, 0, H)
-    bg.addColorStop(0, '#160d2b')
-    bg.addColorStop(0.55, '#0d0820')
-    bg.addColorStop(1, '#06040f')
+    bg.addColorStop(0, '#549087')
+    bg.addColorStop(0.55, '#3f736a')
+    bg.addColorStop(1, '#2f5952')
     ctx.fillStyle = bg
     ctx.fillRect(0, 0, W, H)
 
-    // grid perspektif di lantai
-    ctx.save()
-    ctx.strokeStyle = 'rgba(236,72,153,0.16)'
-    ctx.lineWidth = 1
-    for (let i = 0; i <= 12; i++) {
-      const x = WALL + ((W - WALL * 2) / 12) * i
-      ctx.beginPath()
-      ctx.moveTo(x, FLOOR_Y)
-      ctx.lineTo(W / 2 + (x - W / 2) * 0.55, FLOOR_Y - 120)
-      ctx.stroke()
-    }
-    for (let i = 1; i <= 5; i++) {
-      const y = FLOOR_Y - (120 / 5) * i
-      ctx.beginPath()
-      ctx.moveTo(WALL, y)
-      ctx.lineTo(W - WALL, y)
-      ctx.globalAlpha = 1 - i / 6
-      ctx.stroke()
-    }
-    ctx.restore()
-
-    // lubang hadiah
-    const chute = ctx.createLinearGradient(0, DIVIDER_TOP, 0, H)
-    chute.addColorStop(0, 'rgba(0,0,0,0.2)')
-    chute.addColorStop(1, '#000')
-    ctx.fillStyle = chute
-    ctx.fillRect(WALL, DIVIDER_TOP, DIVIDER_X - WALL - 6, H - DIVIDER_TOP)
-    ctx.strokeStyle = 'rgba(56,189,248,0.55)'
-    ctx.lineWidth = 2
-    ctx.strokeRect(WALL, DIVIDER_TOP, DIVIDER_X - WALL - 6, H - DIVIDER_TOP)
-    ctx.save()
-    ctx.fillStyle = 'rgba(56,189,248,0.75)'
-    ctx.font = '700 15px "Space Grotesk", sans-serif'
-    ctx.textAlign = 'center'
-    ctx.fillText('HADIAH', (WALL + DIVIDER_X - 6) / 2, DIVIDER_TOP + 30)
-    ctx.restore()
-
-    // sekat + lantai
-    ctx.fillStyle = '#1b1235'
-    ctx.fillRect(DIVIDER_X - 6, DIVIDER_TOP, 12, FLOOR_Y - DIVIDER_TOP + 40)
-    ctx.fillStyle = '#231645'
-    ctx.fillRect(DIVIDER_X, FLOOR_Y, W - DIVIDER_X - WALL, 20)
+    // lantai kabin sedikit lebih gelap, dengan garis tepi terang
+    const floor = ctx.createLinearGradient(0, FLOOR_Y, 0, H)
+    floor.addColorStop(0, '#356158')
+    floor.addColorStop(1, '#264A43')
+    ctx.fillStyle = floor
+    ctx.fillRect(0, FLOOR_Y, W, H - FLOOR_Y)
+    ctx.fillStyle = 'rgba(255,255,255,0.12)'
+    ctx.fillRect(0, FLOOR_Y, W, 3)
 
     // rel derek
-    ctx.fillStyle = '#2a1b4d'
-    ctx.fillRect(WALL, RAIL_Y - 8, W - WALL * 2, 10)
-    ctx.strokeStyle = 'rgba(244,114,182,0.5)'
-    ctx.lineWidth = 1.5
+    ctx.fillStyle = '#eef3ec'
     ctx.beginPath()
-    ctx.moveTo(WALL, RAIL_Y + 3)
-    ctx.lineTo(W - WALL, RAIL_Y + 3)
+    ctx.roundRect(WALL + 4, RAIL_Y - 5, W - (WALL + 4) * 2, 10, 5)
+    ctx.fill()
+    ctx.fillStyle = 'rgba(21,42,38,0.16)'
+    ctx.beginPath()
+    ctx.roundRect(WALL + 4, RAIL_Y + 1, W - (WALL + 4) * 2, 4, 2)
+    ctx.fill()
+  }
+
+  private get chuteGeom() {
+    const x0 = WALL + 2
+    const x1 = DIVIDER_X + 6
+    return { x0, x1, cx: (x0 + x1) / 2, rx: (x1 - x0) / 2, ry: 16 }
+  }
+
+  /** Rongga gelap dan bibir belakang tabung hadiah. */
+  private drawChuteBack(ctx: CanvasRenderingContext2D) {
+    const { x0, x1, cx, rx, ry } = this.chuteGeom
+
+    ctx.fillStyle = '#1b3832'
+    ctx.beginPath()
+    ctx.ellipse(cx, DIVIDER_TOP, rx, ry, 0, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillRect(x0, DIVIDER_TOP, x1 - x0, H - DIVIDER_TOP)
+
+    // bibir belakang yang terang
+    ctx.strokeStyle = '#b6e06a'
+    ctx.lineWidth = 7
+    ctx.beginPath()
+    ctx.ellipse(cx, DIVIDER_TOP, rx, ry, 0, Math.PI, 0)
     ctx.stroke()
   }
 
-  private drawCapsule(ctx: CanvasRenderingContext2D, c: Capsule) {
+  /** Dinding depan tabung: menutupi apa pun yang sudah jatuh ke dalamnya. */
+  private drawChuteFront(ctx: CanvasRenderingContext2D) {
+    const { x0, x1, cx, rx, ry } = this.chuteGeom
+
+    const body = ctx.createLinearGradient(x0, 0, x1, 0)
+    body.addColorStop(0, '#5d9026')
+    body.addColorStop(0.3, '#8cc63f')
+    body.addColorStop(0.68, '#aeda63')
+    body.addColorStop(1, '#5d9026')
+
+    ctx.beginPath()
+    ctx.moveTo(x1, DIVIDER_TOP)
+    ctx.ellipse(cx, DIVIDER_TOP, rx, ry, 0, 0, Math.PI)
+    ctx.lineTo(x0, H)
+    ctx.lineTo(x1, H)
+    ctx.closePath()
+    ctx.fillStyle = body
+    ctx.fill()
+
+    // bibir depan
+    ctx.strokeStyle = '#b6e06a'
+    ctx.lineWidth = 7
+    ctx.beginPath()
+    ctx.ellipse(cx, DIVIDER_TOP, rx, ry, 0, 0, Math.PI)
+    ctx.stroke()
+
+    ctx.save()
+    ctx.fillStyle = 'rgba(255,255,255,0.92)'
+    ctx.font = '600 17px Fredoka, Nunito, sans-serif'
+    ctx.textAlign = 'center'
+    ctx.fillText('HADIAH', cx, DIVIDER_TOP + 70)
+    ctx.restore()
+  }
+
+  /** Bola mainan putih mengkilap dengan pita warna tier dan jendela poster. */
+  private drawBall(ctx: CanvasRenderingContext2D, c: Capsule) {
     const { x, y } = c.body.position
     const r = CAPSULE_R
-    const tier = tierOf(c.movie.rank)
-    const color = TIER_COLOR[tier]
+    const color = TIER_COLOR[tierOf(c.movie.rank)]
     const poster = this.getPoster(c.movie.id)
 
     ctx.save()
+
+    // bayangan lembut di bawah bola
+    ctx.beginPath()
+    ctx.ellipse(x, y + r * 0.86, r * 0.78, r * 0.24, 0, 0, Math.PI * 2)
+    ctx.fillStyle = 'rgba(18,44,40,0.26)'
+    ctx.fill()
+
     ctx.translate(x, y)
     ctx.rotate(c.body.angle)
 
+    // badan bola
+    const shell = ctx.createRadialGradient(-r * 0.36, -r * 0.42, r * 0.08, 0, 0, r)
+    shell.addColorStop(0, '#ffffff')
+    shell.addColorStop(0.66, '#f4f6f1')
+    shell.addColorStop(1, '#ccd5cd')
+    ctx.beginPath()
+    ctx.arc(0, 0, r, 0, Math.PI * 2)
+    ctx.fillStyle = shell
+    ctx.fill()
+
+    // pita warna melintang
     ctx.save()
     ctx.beginPath()
     ctx.arc(0, 0, r, 0, Math.PI * 2)
     ctx.clip()
+    ctx.fillStyle = color
+    ctx.fillRect(-r, -r * 0.44, r * 2, r * 0.88)
+    ctx.fillStyle = 'rgba(0,0,0,0.12)'
+    ctx.fillRect(-r, r * 0.3, r * 2, r * 0.14)
+    ctx.restore()
 
+    // jendela poster di tengah
+    const pr = r * 0.6
+    ctx.save()
+    ctx.beginPath()
+    ctx.arc(0, 0, pr, 0, Math.PI * 2)
+    ctx.clip()
     if (poster) {
       const img = poster.img
       const aspect = img.naturalWidth / Math.max(1, img.naturalHeight)
-      const dw = r * 2
+      const dw = pr * 2
       const dh = dw / (aspect || 0.675)
       ctx.drawImage(img, -dw / 2, -dh / 2, dw, dh)
     } else {
-      // kartu gaya sendiri: dipakai selagi poster dimuat atau kalau gagal
-      const g = ctx.createLinearGradient(-r, -r, r, r)
-      g.addColorStop(0, color)
-      g.addColorStop(1, '#1b1035')
-      ctx.fillStyle = g
-      ctx.fillRect(-r, -r, r * 2, r * 2)
-      ctx.fillStyle = 'rgba(8,4,15,0.62)'
-      ctx.fillRect(-r, -r, r * 2, r * 2)
-      ctx.fillStyle = '#fff'
-      ctx.font = '700 15px "Space Grotesk", sans-serif'
+      ctx.fillStyle = '#23423d'
+      ctx.fillRect(-pr, -pr, pr * 2, pr * 2)
+      ctx.fillStyle = '#ffffff'
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
-      const initials = c.movie.title
-        .split(/\s+/)
-        .slice(0, 2)
-        .map((w) => w[0] ?? '')
-        .join('')
-      ctx.fillText(initials.toUpperCase(), 0, 1)
+      ctx.font = '600 15px Fredoka, Nunito, sans-serif'
+      ctx.fillText(String(c.movie.rank), 0, 1)
     }
     ctx.restore()
 
-    // kaca kapsul + pinggiran tier
+    // cincin krem di sekeliling jendela
     ctx.beginPath()
-    ctx.arc(0, 0, r, 0, Math.PI * 2)
-    ctx.strokeStyle = color
-    ctx.lineWidth = 2.5
+    ctx.arc(0, 0, pr, 0, Math.PI * 2)
+    ctx.lineWidth = 3
+    ctx.strokeStyle = '#fdfbf3'
     ctx.stroke()
 
+    // kilau
     ctx.beginPath()
-    ctx.arc(-r * 0.32, -r * 0.36, r * 0.42, 0, Math.PI * 2)
-    ctx.fillStyle = 'rgba(255,255,255,0.22)'
+    ctx.ellipse(-r * 0.42, -r * 0.48, r * 0.24, r * 0.14, -0.6, 0, Math.PI * 2)
+    ctx.fillStyle = 'rgba(255,255,255,0.8)'
     ctx.fill()
+
+    // garis tepi tipis
+    ctx.beginPath()
+    ctx.arc(0, 0, r, 0, Math.PI * 2)
+    ctx.lineWidth = 2
+    ctx.strokeStyle = 'rgba(28,58,52,0.22)'
+    ctx.stroke()
 
     ctx.restore()
   }
@@ -656,82 +711,102 @@ export class ClawGame {
     const x = this.clawX
     const y = this.clawY
 
-    // kabel
-    ctx.strokeStyle = '#7c6bb0'
-    ctx.lineWidth = 2
+    // batang penggantung
+    ctx.strokeStyle = '#c3d0d6'
+    ctx.lineWidth = 5
     ctx.beginPath()
     ctx.moveTo(x, RAIL_Y)
-    ctx.lineTo(x, y)
+    ctx.lineTo(x, y - 4)
+    ctx.stroke()
+    ctx.strokeStyle = 'rgba(255,255,255,0.55)'
+    ctx.lineWidth = 1.5
+    ctx.beginPath()
+    ctx.moveTo(x - 1.4, RAIL_Y)
+    ctx.lineTo(x - 1.4, y - 4)
     ctx.stroke()
 
-    // kereta di rel
-    ctx.fillStyle = '#3b2a63'
-    ctx.fillRect(x - 22, RAIL_Y - 12, 44, 16)
-    ctx.strokeStyle = 'rgba(244,114,182,0.8)'
-    ctx.lineWidth = 1.5
-    ctx.strokeRect(x - 22, RAIL_Y - 12, 44, 16)
+    // kereta motor di rel
+    const carriage = ctx.createLinearGradient(0, RAIL_Y - 16, 0, RAIL_Y + 8)
+    carriage.addColorStop(0, '#6fa6d8')
+    carriage.addColorStop(1, '#3b6fab')
+    ctx.fillStyle = carriage
+    ctx.beginPath()
+    ctx.roundRect(x - 25, RAIL_Y - 17, 50, 26, 9)
+    ctx.fill()
+    ctx.fillStyle = 'rgba(255,255,255,0.4)'
+    ctx.beginPath()
+    ctx.roundRect(x - 19, RAIL_Y - 13, 38, 6, 3)
+    ctx.fill()
 
-    // kepala
-    ctx.save()
-    ctx.shadowColor = 'rgba(236,72,153,0.7)'
-    ctx.shadowBlur = 14
-    const head = ctx.createLinearGradient(x - 26, y - 8, x + 26, y + 8)
-    head.addColorStop(0, '#d9d4ec')
-    head.addColorStop(0.5, '#8b82b8')
-    head.addColorStop(1, '#5a5186')
+    // kepala capit
+    const head = ctx.createLinearGradient(0, y - 12, 0, y + 12)
+    head.addColorStop(0, '#e6eef3')
+    head.addColorStop(0.5, '#bccbd4')
+    head.addColorStop(1, '#8fa4b1')
     ctx.fillStyle = head
     ctx.beginPath()
-    ctx.roundRect(x - 26, y - 9, 52, 18, 5)
+    ctx.roundRect(x - 31, y - 12, 62, 24, 11)
     ctx.fill()
-    ctx.restore()
+    ctx.fillStyle = 'rgba(255,255,255,0.65)'
+    ctx.beginPath()
+    ctx.roundRect(x - 24, y - 8, 48, 6, 3)
+    ctx.fill()
 
-    // jari
-    const spread = 14 + this.openness * 16
-    const tilt = (1 - this.openness) * 0.5
+    // jari capit
+    const spread = 13 + this.openness * 15
+    const tilt = (1 - this.openness) * 0.55
     for (const side of [-1, 1]) {
       ctx.save()
-      ctx.translate(x + side * spread, y + 6)
+      ctx.translate(x + side * spread, y + 8)
       ctx.rotate(side * tilt)
-      const g = ctx.createLinearGradient(-5, 0, 5, 0)
-      g.addColorStop(0, '#cfc9e6')
-      g.addColorStop(1, '#6f679c')
+      const g = ctx.createLinearGradient(-6, 0, 6, 0)
+      g.addColorStop(0, '#eaf1f5')
+      g.addColorStop(0.55, '#bccbd4')
+      g.addColorStop(1, '#8398a6')
       ctx.fillStyle = g
       ctx.beginPath()
-      ctx.moveTo(-4.5, 0)
-      ctx.lineTo(4.5, 0)
-      ctx.lineTo(2.5, 42)
-      ctx.lineTo(-2.5, 42)
+      ctx.moveTo(-7, 0)
+      ctx.lineTo(7, 0)
+      ctx.quadraticCurveTo(8, 27, side * 5.5, 42)
+      ctx.quadraticCurveTo(side * 1.5, 47, side * -2, 42)
+      ctx.quadraticCurveTo(-8, 27, -7, 0)
       ctx.closePath()
       ctx.fill()
-      ctx.strokeStyle = 'rgba(255,255,255,0.35)'
-      ctx.lineWidth = 1
+      ctx.strokeStyle = 'rgba(70,100,116,0.35)'
+      ctx.lineWidth = 1.2
       ctx.stroke()
       ctx.restore()
     }
   }
 
+  /** Pantulan kaca: dua sapuan putih tipis, tanpa glow. */
   private drawGlass(ctx: CanvasRenderingContext2D) {
     ctx.save()
-    ctx.globalCompositeOperation = 'screen'
-    ctx.fillStyle = 'rgba(148,163,255,0.05)'
+    ctx.globalAlpha = 0.09
+    ctx.fillStyle = '#ffffff'
     ctx.beginPath()
-    ctx.moveTo(60, 0)
-    ctx.lineTo(190, 0)
-    ctx.lineTo(70, H)
-    ctx.lineTo(-60, H)
+    ctx.moveTo(70, 0)
+    ctx.lineTo(178, 0)
+    ctx.lineTo(28, H)
+    ctx.lineTo(-80, H)
     ctx.closePath()
     ctx.fill()
     ctx.beginPath()
-    ctx.moveTo(300, 0)
-    ctx.lineTo(340, 0)
-    ctx.lineTo(220, H)
-    ctx.lineTo(180, H)
+    ctx.moveTo(228, 0)
+    ctx.lineTo(262, 0)
+    ctx.lineTo(112, H)
+    ctx.lineTo(78, H)
     ctx.closePath()
     ctx.fill()
     ctx.restore()
 
-    ctx.strokeStyle = 'rgba(129,140,248,0.35)'
-    ctx.lineWidth = 3
-    ctx.strokeRect(WALL / 2, 2, W - WALL, H - 4)
+    // bayangan dalam di tepi kabin
+    ctx.save()
+    const vign = ctx.createLinearGradient(0, 0, 0, 110)
+    vign.addColorStop(0, 'rgba(12,32,29,0.35)')
+    vign.addColorStop(1, 'rgba(12,32,29,0)')
+    ctx.fillStyle = vign
+    ctx.fillRect(0, 0, W, 110)
+    ctx.restore()
   }
 }

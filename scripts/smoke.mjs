@@ -21,8 +21,11 @@ const BASE = process.env.BASE_URL ?? 'http://127.0.0.1:4173/'
 await page.goto(BASE, { waitUntil: 'networkidle' })
 await page.waitForTimeout(600)
 await page.screenshot({ path: `${shots}/01-lobby.png` })
-check('lobby tampil', (await page.locator('h1').innerText()) === 'ARCADE 250')
-check('enam kabinet terpasang', (await page.locator('.cabinet-frame').count()) === 6)
+check('lobby tampil', (await page.locator('h1').innerText()) === 'Arcade 250')
+check(
+  'enam kabinet terpasang',
+  (await page.locator('[aria-label^="Mainkan"], [aria-disabled="true"]').count()) === 6,
+)
 
 const startCoins = await coins()
 await page.locator('[aria-label="Mainkan MOVIE CATCHER"]').click()
@@ -66,7 +69,7 @@ for (let attempt = 1; attempt <= 14 && !prize; attempt++) {
     if ((await modal().count()) > 0) { prize = await modal().getAttribute('aria-label'); break }
     const text = (await status.innerText()).trim()
     phases.add(text)
-    if (text.startsWith('Geser derek') && phases.size > 1) { backToIdle = true; break }
+    if (text.startsWith('GESER LALU') && phases.size > 1) { backToIdle = true; break }
     await page.waitForTimeout(200)
   }
   console.log(`  drop ${drops}: koin ${before}->${after}${prize ? ' | ' + prize : backToIdle ? ' | meleset' : ' | timeout'}`)
