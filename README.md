@@ -1,7 +1,7 @@
 # Arcade 250
 
 Randomizer 250 film terbaik versi IMDb, dikemas sebagai aplikasi bergaya
-**Apple Arcade**. Ada empat mesin, dan semuanya memegang janji yang sama: apa
+**Apple Arcade**. Ada lima mesin, dan semuanya memegang janji yang sama: apa
 yang kamu lihat berhenti di layar itulah film yang kamu dapat.
 
 ![Beranda](docs/screenshot-beranda.png)
@@ -13,6 +13,8 @@ yang kamu lihat berhenti di layar itulah film yang kamu dapat.
 ![Gashapon](docs/screenshot-gashapon.png)
 
 ![Roda Putar](docs/screenshot-roda.png)
+
+![Plinko](docs/screenshot-plinko.png)
 
 ## Jalankan
 
@@ -90,18 +92,35 @@ otomatis, karena koinnya sudah terpakai saat kenop pertama kali disentuh.
 
 ### Roda Putar
 
-Roda berisi sampai 20 film dari pool yang sudah difilter. Bisa dilempar dengan
-jari — makin kencang lemparannya, makin banyak putaran dan makin lama melambat
-— atau ditekan lewat tombol.
+Roda hanya memuat 20 film sekaligus — lebih dari itu segmennya terlalu tipis
+untuk dibaca — tapi **pemenangnya diundi dari seluruh pool**, lalu rodanya
+disusun di sekeliling pemenang itu dan diacak ulang setiap putaran. Dengan
+begitu peluang tiap film persis `1/pool`, bukan `1/20` dari sebagian kecil yang
+kebetulan sedang terpampang.
 
-Sama seperti Case Opening, pemenangnya ditentukan lebih dulu dan sudut
-berhentinya dihitung mundur dari situ. `npm run smoke:wheel` tidak mempercayai
-komponennya: ia membaca sudut putaran mentah, menghitung sendiri segmen mana
-yang berada di jam 12, lalu membandingkannya dengan hadiah yang diberikan.
+Bisa dilempar dengan jari — makin kencang lemparannya, makin banyak putaran dan
+makin lama melambat — atau ditekan lewat tombol.
+
+`npm run smoke:wheel` tidak mempercayai komponennya: ia membaca sudut putaran
+mentah, menghitung sendiri segmen mana yang berada di jam 12, lalu
+membandingkannya dengan hadiah. Ia juga menjaga cakupannya — susunan roda harus
+berganti tiap putaran, dan pemenang tidak boleh terkurung pada 20 film yang
+pertama kali terpampang.
+
+### Plinko
+
+Satu-satunya mesin yang **tidak** menentukan pemenang lebih dulu: bola
+dijatuhkan, pin memantulkannya, dan film pada slot yang kejatuhan bola itulah
+hadiahnya. Justru itu inti permainannya. Titik jatuhnya bisa digeser dengan
+ketukan, tombol panah, atau keyboard.
+
+Physics Plinko memang berat ke slot tengah. Yang menjaga keadilannya: **isi
+sembilan slot diundi ulang setiap lemparan**, sehingga peluang tiap film tetap
+`1/pool` dan tidak bergantung slot mana yang sedang ia tempati.
 
 ### Ekonomi koin
 
-Satu permainan memakai satu koin di keempat mesin, tapi pengembaliannya berbeda
+Satu permainan memakai satu koin di kelima mesin, tapi pengembaliannya berbeda
 karena peluangnya berbeda:
 
 | Mesin | Bisa gagal? | Koin kembali saat menang? |
@@ -110,6 +129,7 @@ karena peluangnya berbeda:
 | Case Opening | tidak, selalu memberi film | tidak — kalau dikembalikan, mesin ini jadi gratis tanpa batas |
 | Gashapon | tidak, selalu memberi film | tidak — alasan yang sama |
 | Roda Putar | tidak, selalu memberi film | tidak — alasan yang sama |
+| Plinko | tidak, selalu memberi film | tidak — alasan yang sama |
 
 ## Sinkron antar perangkat
 
@@ -240,6 +260,9 @@ src/
       index.tsx               kenop putar, kapsul, laci
     Wheel/
       index.tsx               roda canvas, lemparan jari, jarum
+    Plinko/
+      board.ts                physics pin dan slot
+      index.tsx               titik jatuh, pengundian slot
 api/
   state.js                    penyimpanan state bersama (Upstash/Vercel KV)
 ```
@@ -261,6 +284,7 @@ npm run smoke:case     # hadiah Case Opening == ubin di bawah penanda
 npm run smoke:gacha    # dua tahap Gashapon, termasuk jalur yang mudah tersangkut
 npm run smoke:wheel    # hadiah Roda Putar == segmen di bawah jarum
 npm run smoke:posters  # resolver poster, dengan respons Wikipedia dipalsukan
+npm run smoke:plinko   # hadiah Plinko == film pada slot yang kejatuhan bola
 npm run smoke:sync     # dua perangkat berbagi koleksi lewat satu kode
 ```
 
@@ -278,7 +302,10 @@ geometri strip setelah animasi berhenti dan membandingkan ubin di bawah penanda
 dengan hadiah yang diberikan — kalau keduanya berbeda, animasinya berbohong.
 `smoke:gacha` menelusuri ketiga jalur masukan kenop, termasuk dua yang mudah
 membuat mesin tersangkut: melepas kenop sebelum satu putaran penuh, dan menekan
-kenop tanpa memutarnya sama sekali.
+kenop tanpa memutarnya sama sekali. `smoke:plinko` menjaga sambungan antara
+hasil physics dan penempatan film — slot yang kejatuhan bola harus benar-benar
+berisi film yang diberikan — sekaligus memastikan isi slot diundi ulang tiap
+lemparan.
 
 `smoke` juga mengunci hero di lebar desktop: tombol Mainkan pernah hilang karena
 tinggi slide bergantung rantai `aspect-ratio` → `max-height` → `h-full`, jadi
@@ -304,4 +331,4 @@ dan permainannya tetap utuh. Situs tidak punya scroll horizontal di lebar ponsel
 
 Carousel beranda sudah berupa daftar mesin dan layar mesin sudah punya pemilih,
 jadi mesin baru tinggal ditambahkan sebagai satu entri dan satu komponen. Yang
-sudah disiapkan tempatnya: Plinko dan Turnamen 16 Besar.
+sudah disiapkan tempatnya: Turnamen 16 Besar.

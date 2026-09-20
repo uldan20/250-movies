@@ -61,9 +61,9 @@ export const SLIDES: Slide[] = [
   {
     id: 'plinko',
     name: 'Plinko',
-    eyebrow: 'Segera hadir',
+    eyebrow: 'Baru',
     tagline: 'Jatuhkan bola, biarkan pin memutuskan tontonan malam ini.',
-    available: false,
+    available: true,
     accent: '#64d2ff',
     backdrop: backdropAt(41),
   },

@@ -14,7 +14,12 @@ type Props = {
 
 type Phase = 'idle' | 'spinning'
 
-/** Lebih dari ini segmennya terlalu tipis untuk terbaca. */
+/**
+ * Lebih dari ini segmennya terlalu tipis untuk terbaca, jadi roda hanya
+ * menampilkan sebagian pool. Yang penting: pemenangnya tetap diundi dari
+ * SELURUH pool, lalu roda disusun di sekelilingnya — kalau tidak, film yang
+ * kebetulan tidak muncul di roda tidak akan pernah bisa keluar.
+ */
 const MAX_SEGMENTS = 20
 const SIZE = 340
 
@@ -58,7 +63,7 @@ export default function Wheel({
   const count = Math.min(MAX_SEGMENTS, Math.max(1, pool.length))
   const [segments, setSegments] = useState<Movie[]>([])
 
-  // Isi roda diacak ulang setiap pool berubah.
+  // Tampilan awal sebelum putaran pertama.
   useEffect(() => {
     if (pool.length === 0) {
       setSegments([])
@@ -69,7 +74,7 @@ export default function Wheel({
     setRotation(0)
   }, [pool, count])
 
-  const canSpin = phase === 'idle' && coins > 0 && segments.length > 0
+  const canSpin = phase === 'idle' && coins > 0 && pool.length > 0
 
   // ---------- gambar ----------
 
@@ -150,15 +155,23 @@ export default function Wheel({
 
   const spinTo = useCallback(
     (strength: number) => {
-      if (segments.length === 0) return
-      const prize = sample(segments, 1)[0]
-      const w = segments.indexOf(prize)
+      if (pool.length === 0) return
+
+      // Undi dari seluruh pool lebih dulu, baru susun rodanya. Dengan begini
+      // peluang tiap film persis 1/pool, bukan 1/20 dari sebagian kecil yang
+      // kebetulan sedang terpampang.
+      const prize = sample(pool, 1)[0]
+      const others = shuffle(pool.filter((m) => m.id !== prize.id)).slice(0, count - 1)
+      const nextSegments = shuffle([prize, ...others])
+      const w = nextSegments.findIndex((m) => m.id === prize.id)
+
+      setSegments(nextSegments)
       setWinnerIndex(null)
       setPhase('spinning')
       onSpend()
       sfx.coin()
 
-      const seg = 360 / segments.length
+      const seg = 360 / nextSegments.length
       // Berhenti di tengah segmen pemenang, dengan kemelesetan yang tetap jauh
       // dari garis pembatas.
       const jitter = randRange(-seg * 0.34, seg * 0.34)
@@ -196,7 +209,7 @@ export default function Wheel({
       }
       rafRef.current = requestAnimationFrame(step)
     },
-    [onSpend, rotation, segments],
+    [count, onSpend, pool, rotation],
   )
 
   // ---------- lemparan jari ----------
@@ -318,7 +331,11 @@ export default function Wheel({
         {coins} koin · satu putaran memakai satu koin, dan selalu memberi film
       </p>
       <p className="t-caption mt-1 text-center font-light text-mist">
-        Rodanya juga bisa dilempar dengan jari — makin kencang, makin lama berputar
+        Rodanya bisa dilempar dengan jari — makin kencang, makin lama berputar
+      </p>
+      <p className="t-caption mt-1 text-center font-light text-mist">
+        Roda menampilkan {count} film sekaligus, tapi pemenangnya diundi dari seluruh {pool.length}{' '}
+        film yang lolos filter
       </p>
     </div>
   )
