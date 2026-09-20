@@ -1,10 +1,11 @@
 import CaseOpening from './CaseOpening'
 import ClawMachine from './ClawMachine'
 import Gashapon from './Gashapon'
+import Wheel from './Wheel'
 import type { Movie } from '../data/types'
 import { sfx } from '../lib/sound'
 
-export type MachineId = 'claw' | 'case' | 'gacha'
+export type MachineId = 'claw' | 'case' | 'gacha' | 'wheel'
 
 type Props = {
   machine: MachineId
@@ -23,10 +24,11 @@ type Props = {
 const META: Record<MachineId, { name: string; short: string; unit: string }> = {
   claw: { name: 'Movie Catcher', short: 'Capit', unit: 'film di kabin' },
   case: { name: 'Case Opening', short: 'Case', unit: 'film di strip' },
-  gacha: { name: 'Gashapon', short: 'Gashapon', unit: 'film di kubah' },
+  gacha: { name: 'Gashapon', short: 'Gacha', unit: 'film di kubah' },
+  wheel: { name: 'Roda Putar', short: 'Roda', unit: 'film di pool' },
 }
 
-const ORDER: MachineId[] = ['claw', 'case', 'gacha']
+const ORDER: MachineId[] = ['claw', 'case', 'gacha', 'wheel']
 
 export default function MachineScreen({
   machine,
@@ -103,8 +105,17 @@ export default function MachineScreen({
           onInsertCoin={onInsertCoin}
           onOpenFilters={onOpenFilters}
         />
-      ) : (
+      ) : machine === 'gacha' ? (
         <Gashapon
+          pool={pool}
+          coins={coins}
+          onSpend={onSpend}
+          onPrize={(m) => onPrize(m, false)}
+          onInsertCoin={onInsertCoin}
+          onOpenFilters={onOpenFilters}
+        />
+      ) : (
+        <Wheel
           pool={pool}
           coins={coins}
           onSpend={onSpend}

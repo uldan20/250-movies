@@ -1,7 +1,7 @@
 # Arcade 250
 
 Randomizer 250 film terbaik versi IMDb, dikemas sebagai aplikasi bergaya
-**Apple Arcade**. Ada tiga mesin, dan semuanya memegang janji yang sama: apa
+**Apple Arcade**. Ada empat mesin, dan semuanya memegang janji yang sama: apa
 yang kamu lihat berhenti di layar itulah film yang kamu dapat.
 
 ![Beranda](docs/screenshot-beranda.png)
@@ -11,6 +11,8 @@ yang kamu lihat berhenti di layar itulah film yang kamu dapat.
 ![Case Opening](docs/screenshot-case.png)
 
 ![Gashapon](docs/screenshot-gashapon.png)
+
+![Roda Putar](docs/screenshot-roda.png)
 
 ## Jalankan
 
@@ -86,9 +88,20 @@ Putar untuk keyboard atau sekali ketuk.
 Melepas kenop sebelum penuh tidak menghanguskan koin: putaran diselesaikan
 otomatis, karena koinnya sudah terpakai saat kenop pertama kali disentuh.
 
+### Roda Putar
+
+Roda berisi sampai 20 film dari pool yang sudah difilter. Bisa dilempar dengan
+jari — makin kencang lemparannya, makin banyak putaran dan makin lama melambat
+— atau ditekan lewat tombol.
+
+Sama seperti Case Opening, pemenangnya ditentukan lebih dulu dan sudut
+berhentinya dihitung mundur dari situ. `npm run smoke:wheel` tidak mempercayai
+komponennya: ia membaca sudut putaran mentah, menghitung sendiri segmen mana
+yang berada di jam 12, lalu membandingkannya dengan hadiah yang diberikan.
+
 ### Ekonomi koin
 
-Satu permainan memakai satu koin di ketiga mesin, tapi pengembaliannya berbeda
+Satu permainan memakai satu koin di keempat mesin, tapi pengembaliannya berbeda
 karena peluangnya berbeda:
 
 | Mesin | Bisa gagal? | Koin kembali saat menang? |
@@ -96,6 +109,7 @@ karena peluangnya berbeda:
 | Movie Catcher | ya, cengkeraman bisa lepas | ya — yang mahal adalah meleset |
 | Case Opening | tidak, selalu memberi film | tidak — kalau dikembalikan, mesin ini jadi gratis tanpa batas |
 | Gashapon | tidak, selalu memberi film | tidak — alasan yang sama |
+| Roda Putar | tidak, selalu memberi film | tidak — alasan yang sama |
 
 ## Mengelola tangkapan
 
@@ -175,6 +189,8 @@ src/
       index.tsx               strip poster, animasi berhenti, penanda
     Gashapon/
       index.tsx               kenop putar, kapsul, laci
+    Wheel/
+      index.tsx               roda canvas, lemparan jari, jarum
 ```
 
 Efek suara **tidak memakai satu pun file audio** — semuanya dibangkitkan dengan
@@ -192,6 +208,7 @@ npm run smoke          # beranda, hero, mesin, filter, hapus tangkapan, cari, mo
 npm run smoke:coins    # invarian: koin == awal - jumlah_capit + jumlah_menang
 npm run smoke:case     # hadiah Case Opening == ubin di bawah penanda
 npm run smoke:gacha    # dua tahap Gashapon, termasuk jalur yang mudah tersangkut
+npm run smoke:wheel    # hadiah Roda Putar == segmen di bawah jarum
 npm run smoke:posters  # resolver poster, dengan respons Wikipedia dipalsukan
 ```
 
@@ -227,4 +244,4 @@ dan permainannya tetap utuh. Situs tidak punya scroll horizontal di lebar ponsel
 
 Carousel beranda sudah berupa daftar mesin dan layar mesin sudah punya pemilih,
 jadi mesin baru tinggal ditambahkan sebagai satu entri dan satu komponen. Yang
-sudah disiapkan tempatnya: Roda Putar, Plinko, dan Turnamen 16 Besar.
+sudah disiapkan tempatnya: Plinko dan Turnamen 16 Besar.

@@ -52,9 +52,9 @@ export const SLIDES: Slide[] = [
   {
     id: 'wheel',
     name: 'Roda Putar',
-    eyebrow: 'Segera hadir',
-    tagline: '250 segmen, satu jarum, momentum dari tarikan jarimu.',
-    available: false,
+    eyebrow: 'Baru',
+    tagline: 'Lempar rodanya dengan jari, biarkan jarum yang memutuskan.',
+    available: true,
     accent: '#30d158',
     backdrop: backdropAt(23),
   },
