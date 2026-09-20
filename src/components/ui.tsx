@@ -87,6 +87,33 @@ export function Screen({ children }: { children: ReactNode }) {
   return <div className="fade-in pb-28">{children}</div>
 }
 
+/**
+ * Pengaturan harus bisa dibuka dari layar mana pun — kode sync ada di sana,
+ * dan sebelumnya tombolnya cuma ada di Beranda.
+ */
+export function SettingsButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      aria-label="Pengaturan"
+      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-carbon text-ash transition-colors hover:text-frost"
+    >
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        aria-hidden="true"
+      >
+        <circle cx="12" cy="12" r="3.2" />
+        <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-2.87 1.2v.17a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-2.93-1.16l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.4l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 10.3 4.6V4a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 2.87 1.2l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0 1.2 2.87H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.51 1.01z" />
+      </svg>
+    </button>
+  )
+}
+
 /** Judul besar ala iOS di kepala tiap tab. */
 export function LargeTitle({ title, action }: { title: string; action?: ReactNode }) {
   return (

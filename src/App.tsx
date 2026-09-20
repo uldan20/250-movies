@@ -77,6 +77,7 @@ export default function App() {
             onMiss={() => undefined}
             onInsertCoin={() => arcade.addCoins(5)}
             onOpenFilters={() => setSheet('filters')}
+            onOpenSettings={() => setSheet('settings')}
           />
         )}
 
@@ -96,10 +97,13 @@ export default function App() {
               else if (which === 'watchlist') arcade.clearWatchlist()
               else arcade.clearSeen()
             }}
+            onOpenSettings={() => setSheet('settings')}
           />
         )}
 
-        {tab === 'search' && <SearchScreen onSelectMovie={setDetail} />}
+        {tab === 'search' && (
+          <SearchScreen onSelectMovie={setDetail} onOpenSettings={() => setSheet('settings')} />
+        )}
       </main>
 
       <TabBar
@@ -120,6 +124,7 @@ export default function App() {
       />
       <SettingsSheet
         open={sheet === 'settings'}
+        sync={arcade.sync}
         onClose={() => setSheet(null)}
         onResetProgress={arcade.resetProgress}
       />

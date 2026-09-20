@@ -3,7 +3,7 @@ import { MOVIES_BY_ID } from '../data/movies'
 import type { Movie } from '../data/types'
 import { sfx } from '../lib/sound'
 import PosterImage from './PosterImage'
-import { Screen } from './ui'
+import { Screen, SettingsButton } from './ui'
 
 type Tab = 'history' | 'watchlist' | 'seen'
 
@@ -14,6 +14,7 @@ type Props = {
   onSelectMovie: (m: Movie) => void
   onRemove: (tab: Tab, id: string) => void
   onClear: (tab: Tab) => void
+  onOpenSettings: () => void
 }
 
 const EMPTY: Record<Tab, string> = {
@@ -41,6 +42,7 @@ export default function LibraryScreen({
   onSelectMovie,
   onRemove,
   onClear,
+  onOpenSettings,
 }: Props) {
   const [tab, setTab] = useState<Tab>('history')
   const [editing, setEditing] = useState(false)
@@ -63,16 +65,19 @@ export default function LibraryScreen({
       <div className="px-5 pb-4 pt-3">
         <div className="mb-4 flex items-center justify-between">
           <h1 className="t-heading font-bold text-frost">Koleksi</h1>
-          <button
-            onClick={() => {
-              sfx.click()
-              setEditing((e) => !e)
-            }}
-            disabled={movies.length === 0}
-            className={`pill pill--sm ${editing ? 'pill--filled' : 'pill--quiet'}`}
-          >
-            {editing ? 'Selesai' : 'Edit'}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                sfx.click()
+                setEditing((e) => !e)
+              }}
+              disabled={movies.length === 0}
+              className={`pill pill--sm ${editing ? 'pill--filled' : 'pill--quiet'}`}
+            >
+              {editing ? 'Selesai' : 'Edit'}
+            </button>
+            <SettingsButton onClick={onOpenSettings} />
+          </div>
         </div>
 
         <div className="flex gap-1 rounded-[8px] border border-hairline bg-carbon p-1">

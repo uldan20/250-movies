@@ -13,7 +13,8 @@
     "smoke:posters": "node scripts/poster-resolver.mjs",
     "smoke:case": "node scripts/case-opening.mjs",
     "smoke:gacha": "node scripts/gashapon.mjs",
-    "smoke:wheel": "node scripts/wheel.mjs"
+    "smoke:wheel": "node scripts/wheel.mjs",
+    "smoke:sync": "node scripts/sync.mjs"
   },
   "dependencies": {
     "framer-motion": "^11.15.0",

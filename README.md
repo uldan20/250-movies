@@ -111,6 +111,54 @@ karena peluangnya berbeda:
 | Gashapon | tidak, selalu memberi film | tidak — alasan yang sama |
 | Roda Putar | tidak, selalu memberi film | tidak — alasan yang sama |
 
+## Sinkron antar perangkat
+
+Secara bawaan koleksi disimpan di `localStorage`, yang artinya **per-browser
+per-perangkat** — membuka situs yang sama di HP akan mulai dari kosong. Itu
+perilaku `localStorage`, bukan kekurangan hosting: datanya memang tidak pernah
+meninggalkan browser.
+
+Supaya menyeberang, ada **kode sync**. Di Pengaturan, satu perangkat menekan
+"Buat kode sync" dan mendapat kode delapan karakter seperti `NGSB-6M5C`;
+perangkat lain memasukkan kode itu. Setelah tersambung, koin, tangkapan,
+watchlist, dan tanda ditonton mengikuti ke mana pun kamu buka. Tidak ada akun
+dan tidak ada login — kodenya sendiri yang jadi kuncinya, jadi perlakukan
+seperti kata sandi.
+
+Filter sengaja **tidak** ikut disinkron: itu preferensi per-perangkat.
+
+### Memasangnya di Vercel
+
+1. Buka project di Vercel → **Storage** → **Create Database** → **Upstash
+   Redis** (ada paket gratis) → **Connect** ke project ini.
+2. Vercel memasang `KV_REST_API_URL` dan `KV_REST_API_TOKEN` sendiri. Nama dari
+   integrasi Upstash langsung (`UPSTASH_REDIS_REST_*`) juga diterima.
+3. Deploy ulang.
+
+Tanpa langkah ini aplikasi tetap berjalan normal — hanya bagian sinkronisasi
+yang melaporkan bahwa penyimpanan bersama belum dipasang, dan semuanya kembali
+tersimpan lokal saja.
+
+### Cara kerjanya
+
+`api/state.js` menyimpan satu dokumen per kode, dengan protokol kecil:
+
+```
+GET  /api/state?code=XXXXXXXX   -> { version, data }
+PUT  /api/state { code, version, data }
+     -> 200 { version }          bila version cocok
+     -> 409 { version, data }    bila sudah didahului perangkat lain
+```
+
+`version` adalah penghitung naik. Perangkat yang tertinggal ditolak dan
+menerima kembali isi terbaru, jadi perubahan tidak ditimpa diam-diam.
+**Server yang jadi acuan**: tiap perangkat menarik ulang saat dibuka dan saat
+tab kembali dilihat, dan mengirim perubahannya setelah jeda singkat. Karena itu
+penghapusan ikut menyeberang dengan benar. Kalau dua perangkat mengubah pada
+saat yang sama, yang terakhir menang.
+
+Dokumen kedaluwarsa otomatis setelah 180 hari tanpa aktivitas.
+
 ## Mengelola tangkapan
 
 ![Koleksi](docs/screenshot-koleksi.png)
@@ -172,6 +220,7 @@ src/
   data/movies.ts              250 entri sebagai tuple ringkas + parser bertipe
   lib/
     posters.ts                resolver bertingkat, cache, antrean paralel
+    sync.ts                   kode sync, tarik/kirim, penanganan konflik
     shelves.ts                definisi rak konten di beranda
     sound.ts                  seluruh SFX disintesis WebAudio (nol file audio)
     shareCard.ts              render kartu hasil 900x1400 ke PNG
@@ -191,6 +240,8 @@ src/
       index.tsx               kenop putar, kapsul, laci
     Wheel/
       index.tsx               roda canvas, lemparan jari, jarum
+api/
+  state.js                    penyimpanan state bersama (Upstash/Vercel KV)
 ```
 
 Efek suara **tidak memakai satu pun file audio** — semuanya dibangkitkan dengan
@@ -210,7 +261,16 @@ npm run smoke:case     # hadiah Case Opening == ubin di bawah penanda
 npm run smoke:gacha    # dua tahap Gashapon, termasuk jalur yang mudah tersangkut
 npm run smoke:wheel    # hadiah Roda Putar == segmen di bawah jarum
 npm run smoke:posters  # resolver poster, dengan respons Wikipedia dipalsukan
+npm run smoke:sync     # dua perangkat berbagi koleksi lewat satu kode
 ```
+
+`smoke:sync` menjalankan dua konteks browser terpisah — dua `localStorage`
+berbeda, persis seperti laptop dan HP — lalu memastikan koleksi menyeberang
+setelah kode disambungkan, **penghapusan ikut menyeberang** (bukan cuma
+penambahan), dan perangkat tanpa kode tetap terpisah. Servernya
+(`scripts/dev-sync-server.mjs`) mengimpor handler dari `api/state.js` dan hanya
+mengganti penyimpanannya dengan Map di memori, jadi yang diuji adalah kode yang
+benar-benar berjalan di produksi.
 
 Tiap mesin punya penjaga kejujurannya sendiri. `smoke:coins` memastikan mesin
 capit tidak pernah memberi hadiah yang tidak dicapit. `smoke:case` membaca

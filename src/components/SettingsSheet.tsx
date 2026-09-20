@@ -7,12 +7,29 @@ import {
   retryFailedPosters,
 } from '../lib/posters'
 import { sfx } from '../lib/sound'
+import {
+  formatCode,
+  generateCode,
+  isValidCode,
+  normalizeCode,
+} from '../lib/sync'
+import type { Arcade } from '../lib/useArcade'
 import Sheet from './Sheet'
 
 type Props = {
   open: boolean
+  sync: Arcade['sync']
   onClose: () => void
   onResetProgress: () => void
+}
+
+const SYNC_STATUS_TEXT: Record<Arcade['sync']['status'], string> = {
+  off: 'Tidak aktif — koleksi hanya tersimpan di perangkat ini',
+  connecting: 'Menyambungkan…',
+  synced: 'Tersambung',
+  offline: 'Tidak bisa menjangkau server — perubahan tetap tersimpan lokal',
+  not_configured: 'Server belum dipasangi penyimpanan bersama',
+  error: 'Sinkronisasi gagal — perubahan tetap tersimpan lokal',
 }
 
 function Group({ title, children }: { title: string; children: React.ReactNode }) {
@@ -24,11 +41,24 @@ function Group({ title, children }: { title: string; children: React.ReactNode }
   )
 }
 
-export default function SettingsSheet({ open, onClose, onResetProgress }: Props) {
+export default function SettingsSheet({ open, sync, onClose, onResetProgress }: Props) {
   const [key, setKey] = useState(getTmdbKey)
   const [muted, setMuted] = useState(sfx.muted)
   const [saved, setSaved] = useState(false)
   const [stats, setStats] = useState(() => posterCacheStats())
+  const [joinCode, setJoinCode] = useState('')
+  const [copied, setCopied] = useState(false)
+
+  async function copyCode() {
+    if (!sync.code) return
+    try {
+      await navigator.clipboard.writeText(formatCode(sync.code))
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1600)
+    } catch {
+      /* clipboard ditolak — kodenya tetap terbaca di layar */
+    }
+  }
 
   function saveKey(value: string) {
     setKey(value)
@@ -57,6 +87,101 @@ export default function SettingsSheet({ open, onClose, onResetProgress }: Props)
           />
           Efek suara
         </label>
+      </Group>
+
+      <Group title="Sinkron antar perangkat">
+        <p className="t-body-sm font-light text-ash">
+          Koleksi disimpan di browser masing-masing perangkat. Sambungkan keduanya dengan satu kode
+          supaya koin, tangkapan, watchlist, dan tanda ditonton mengikuti ke mana pun kamu buka.
+        </p>
+
+        <p className="t-caption mt-3 text-mist" role="status">
+          {SYNC_STATUS_TEXT[sync.status]}
+          {sync.lastSyncedAt != null && sync.status === 'synced'
+            ? ` · terakhir ${new Date(sync.lastSyncedAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}`
+            : ''}
+        </p>
+
+        {sync.code ? (
+          <>
+            <div className="mt-3 flex items-center justify-between rounded-[8px] border border-hairline bg-onyx px-3.5 py-3">
+              <span
+                data-sync-code={sync.code}
+                className="t-subheading font-semibold tracking-[0.12em] text-frost"
+              >
+                {formatCode(sync.code)}
+              </span>
+              <button onClick={copyCode} className="pill pill--sm pill--quiet">
+                {copied ? 'Tersalin' : 'Salin'}
+              </button>
+            </div>
+            <p className="t-caption mt-2 font-light text-mist">
+              Masukkan kode ini di perangkat lain lewat Pengaturan.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                onClick={() => {
+                  sfx.click()
+                  sync.refresh()
+                }}
+                className="pill pill--sm pill--quiet"
+              >
+                Sinkronkan sekarang
+              </button>
+              <button
+                onClick={() => {
+                  if (window.confirm('Putuskan sambungan? Koleksi di perangkat ini tetap ada.')) {
+                    sfx.click()
+                    sync.disconnect()
+                  }
+                }}
+                className="pill pill--sm"
+                style={{ background: '#2c2c2e', color: '#ff453a' }}
+              >
+                Putuskan
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <button
+              onClick={() => {
+                sfx.coin()
+                sync.connect(generateCode())
+              }}
+              className="pill pill--filled mt-3 w-full"
+            >
+              Buat kode sync
+            </button>
+            <p className="t-caption mt-4 mb-2 font-light text-mist">
+              Sudah punya kode dari perangkat lain?
+            </p>
+            <div className="flex gap-2">
+              <input
+                value={joinCode}
+                onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                placeholder="XXXX-XXXX"
+                autoComplete="off"
+                spellCheck={false}
+                aria-label="Masukkan kode sync dari perangkat lain"
+                className="t-body-sm min-w-0 flex-1 rounded-[8px] border border-hairline bg-onyx px-3 py-2.5 font-semibold tracking-[0.12em] text-frost placeholder:font-light placeholder:tracking-normal placeholder:text-mist focus:border-apple-blue focus:outline-none"
+              />
+              <button
+                onClick={() => {
+                  const code = normalizeCode(joinCode)
+                  if (!isValidCode(code)) return
+                  sfx.coin()
+                  sync.connect(code)
+                  setJoinCode('')
+                }}
+                disabled={!isValidCode(normalizeCode(joinCode))}
+                className="pill pill--sm pill--filled"
+              >
+                Sambungkan
+              </button>
+            </div>
+          </>
+        )}
       </Group>
 
       <Group title="Poster">

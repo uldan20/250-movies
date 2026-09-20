@@ -1,13 +1,14 @@
 import { useMemo, useState } from 'react'
 import { MOVIES } from '../data/movies'
 import type { Movie } from '../data/types'
-import { PosterTile, Screen } from './ui'
+import { PosterTile, Screen, SettingsButton } from './ui'
 
 type Props = {
   onSelectMovie: (m: Movie) => void
+  onOpenSettings: () => void
 }
 
-export default function SearchScreen({ onSelectMovie }: Props) {
+export default function SearchScreen({ onSelectMovie, onOpenSettings }: Props) {
   const [query, setQuery] = useState('')
 
   const results = useMemo(() => {
@@ -25,7 +26,10 @@ export default function SearchScreen({ onSelectMovie }: Props) {
   return (
     <Screen>
       <div className="px-5 pb-4 pt-3">
-        <h1 className="t-heading mb-4 font-bold text-frost">Cari</h1>
+        <div className="mb-4 flex items-center justify-between">
+          <h1 className="t-heading font-bold text-frost">Cari</h1>
+          <SettingsButton onClick={onOpenSettings} />
+        </div>
         <div className="relative">
           <span
             aria-hidden="true"

@@ -4,6 +4,7 @@ import Gashapon from './Gashapon'
 import Wheel from './Wheel'
 import type { Movie } from '../data/types'
 import { sfx } from '../lib/sound'
+import { SettingsButton } from './ui'
 
 export type MachineId = 'claw' | 'case' | 'gacha' | 'wheel'
 
@@ -18,9 +19,10 @@ type Props = {
   onMiss: () => void
   onInsertCoin: () => void
   onOpenFilters: () => void
+  onOpenSettings: () => void
 }
 
-/** `short` dipakai di pemilih mesin supaya tiga segmen tetap muat di ponsel. */
+/** `short` dipakai di pemilih mesin supaya empat segmen tetap muat di ponsel. */
 const META: Record<MachineId, { name: string; short: string; unit: string }> = {
   claw: { name: 'Movie Catcher', short: 'Capit', unit: 'film di kabin' },
   case: { name: 'Case Opening', short: 'Case', unit: 'film di strip' },
@@ -41,6 +43,7 @@ export default function MachineScreen({
   onMiss,
   onInsertCoin,
   onOpenFilters,
+  onOpenSettings,
 }: Props) {
   const meta = META[machine]
 
@@ -55,9 +58,12 @@ export default function MachineScreen({
               {activeFilters > 0 ? ` · ${activeFilters} filter aktif` : ''}
             </p>
           </div>
-          <button onClick={onOpenFilters} className="pill pill--sm pill--quiet mt-1.5">
-            Filter
-          </button>
+          <div className="mt-1.5 flex items-center gap-2">
+            <button onClick={onOpenFilters} className="pill pill--sm pill--quiet">
+              Filter
+            </button>
+            <SettingsButton onClick={onOpenSettings} />
+          </div>
         </div>
 
         {/* Pemilih mesin bergaya segmented control iOS. */}
