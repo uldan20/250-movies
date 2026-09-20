@@ -137,6 +137,33 @@ const overflow = await page.evaluate(
   () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
 )
 check('tidak ada scroll horizontal di ponsel', overflow <= 0, `${overflow}px`)
+
+// Hero di lebar desktop: tombolnya pernah hilang karena tinggi slide bergantung
+// rantai aspect-ratio -> max-height, jadi keadaan ini dikunci di sini.
+await tab('Beranda').click()
+await page.setViewportSize({ width: 1440, height: 900 })
+await page.waitForTimeout(1200)
+await page.screenshot({ path: `${shots}/a7-desktop.png` })
+
+const hero = await page.evaluate(() => {
+  const slide = document.querySelector('[role="group"] > div > div')
+  const backdrop = slide.querySelector('[aria-hidden="true"].flex')
+  const btn = slide.querySelector('button')
+  if (!btn) return { ok: false, reason: 'tombol tidak ada' }
+  const r = btn.getBoundingClientRect()
+  const top = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)
+  return {
+    ok: true,
+    label: btn.textContent.trim(),
+    visible: r.width > 0 && r.height > 0 && r.y >= 0 && r.bottom <= innerHeight,
+    onTop: btn === top || btn.contains(top),
+    backdropOverflow: backdrop.scrollWidth - Math.round(backdrop.getBoundingClientRect().width),
+  }
+})
+check('tombol hero ada di desktop', hero.ok && hero.label === 'Mainkan', hero.reason ?? hero.label)
+check('tombol hero terlihat penuh', hero.ok && hero.visible)
+check('tombol hero tidak tertimpa latar', hero.ok && hero.onTop, hero.ok ? String(hero.onTop) : '')
+check('latar hero tidak melebihi kabin', hero.ok && hero.backdropOverflow <= 24, `${hero.backdropOverflow}px`)
 check('tidak ada exception JS', errors.length === 0, errors.slice(0, 3).join(' || '))
 
 await browser.close()

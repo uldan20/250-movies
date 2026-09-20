@@ -31,7 +31,7 @@ await page.goto(BASE, { waitUntil: 'domcontentloaded' })
 await page.waitForTimeout(1200)
 await page.locator('nav button[aria-label="Mesin"]').click()
 await page.waitForTimeout(700)
-await page.locator('button[role="tab"]:has-text("Case Opening")').click()
+await page.locator('button[role="tab"][data-machine="case"]').click()
 await page.waitForTimeout(900)
 
 check('strip poster terpasang', (await page.locator('[data-winner] [data-movie]').count()) > 20,

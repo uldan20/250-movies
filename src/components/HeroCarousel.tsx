@@ -43,9 +43,9 @@ export const SLIDES: Slide[] = [
   {
     id: 'gacha',
     name: 'Gashapon',
-    eyebrow: 'Segera hadir',
-    tagline: 'Putar kenop, kapsul menggelinding, goyang sampai pecah.',
-    available: false,
+    eyebrow: 'Baru',
+    tagline: 'Putar kenop satu lingkaran penuh, lalu pecahkan kapsulnya.',
+    available: true,
     accent: '#bf5af2',
     backdrop: backdropAt(11),
   },
@@ -126,7 +126,8 @@ export default function HeroCarousel({ onPlay }: { onPlay: (id: MachineId) => vo
       onFocusCapture={() => setPaused(true)}
     >
       <div
-        className="relative aspect-[3/4] max-h-[620px] w-full touch-pan-y overflow-hidden sm:aspect-[16/10]"
+        className="relative w-full touch-pan-y overflow-hidden"
+        style={{ height: 'clamp(420px, min(125vw, 74vh), 620px)' }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
@@ -147,7 +148,10 @@ export default function HeroCarousel({ onPlay }: { onPlay: (id: MachineId) => vo
           }}
         >
           {SLIDES.map((slide, i) => (
-            <div key={slide.id} className="relative h-full w-full shrink-0 overflow-hidden">
+            <div
+              key={slide.id}
+              className="relative flex h-full w-full shrink-0 flex-col justify-end overflow-hidden"
+            >
               {/* Dasar gradasi aksen: menahan hero tetap berisi meski poster gagal dimuat. */}
               <div
                 className="absolute inset-0"
@@ -162,7 +166,7 @@ export default function HeroCarousel({ onPlay }: { onPlay: (id: MachineId) => vo
                   <PosterImage
                     key={m.id}
                     movie={m}
-                    className="h-full flex-1 scale-110 object-cover opacity-55 blur-[2px]"
+                    className="h-full w-1/5 min-w-0 shrink scale-110 object-cover opacity-55 blur-[2px]"
                     rounded="rounded-none"
                   />
                 ))}
@@ -183,7 +187,7 @@ export default function HeroCarousel({ onPlay }: { onPlay: (id: MachineId) => vo
                 }}
               />
 
-              <div className="absolute inset-x-0 bottom-0 flex flex-col items-center px-6 pb-8 text-center">
+              <div className="relative z-10 flex flex-col items-center px-6 pb-8 text-center">
                 <p className="t-eyebrow text-frost/75">{slide.eyebrow}</p>
                 <h2 className="t-heading mt-1.5 font-semibold text-frost">{slide.name}</h2>
                 <p className="t-body mt-1.5 max-w-sm font-light text-frost/80">{slide.tagline}</p>

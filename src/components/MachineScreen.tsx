@@ -1,9 +1,10 @@
 import CaseOpening from './CaseOpening'
 import ClawMachine from './ClawMachine'
+import Gashapon from './Gashapon'
 import type { Movie } from '../data/types'
 import { sfx } from '../lib/sound'
 
-export type MachineId = 'claw' | 'case'
+export type MachineId = 'claw' | 'case' | 'gacha'
 
 type Props = {
   machine: MachineId
@@ -18,12 +19,14 @@ type Props = {
   onOpenFilters: () => void
 }
 
-const META: Record<MachineId, { name: string; unit: string }> = {
-  claw: { name: 'Movie Catcher', unit: 'film di kabin' },
-  case: { name: 'Case Opening', unit: 'film di strip' },
+/** `short` dipakai di pemilih mesin supaya tiga segmen tetap muat di ponsel. */
+const META: Record<MachineId, { name: string; short: string; unit: string }> = {
+  claw: { name: 'Movie Catcher', short: 'Capit', unit: 'film di kabin' },
+  case: { name: 'Case Opening', short: 'Case', unit: 'film di strip' },
+  gacha: { name: 'Gashapon', short: 'Gashapon', unit: 'film di kubah' },
 }
 
-const ORDER: MachineId[] = ['claw', 'case']
+const ORDER: MachineId[] = ['claw', 'case', 'gacha']
 
 export default function MachineScreen({
   machine,
@@ -65,6 +68,7 @@ export default function MachineScreen({
             <button
               key={id}
               role="tab"
+              data-machine={id}
               aria-selected={machine === id}
               onClick={() => {
                 sfx.click()
@@ -74,7 +78,7 @@ export default function MachineScreen({
                 machine === id ? 'bg-slate text-frost' : 'text-mist hover:text-ash'
               }`}
             >
-              {META[id].name}
+              {META[id].short}
             </button>
           ))}
         </div>
@@ -90,8 +94,17 @@ export default function MachineScreen({
           onInsertCoin={onInsertCoin}
           onOpenFilters={onOpenFilters}
         />
-      ) : (
+      ) : machine === 'case' ? (
         <CaseOpening
+          pool={pool}
+          coins={coins}
+          onSpend={onSpend}
+          onPrize={(m) => onPrize(m, false)}
+          onInsertCoin={onInsertCoin}
+          onOpenFilters={onOpenFilters}
+        />
+      ) : (
+        <Gashapon
           pool={pool}
           coins={coins}
           onSpend={onSpend}
