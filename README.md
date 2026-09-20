@@ -1,8 +1,9 @@
 # Arcade 250
 
 Randomizer 250 film terbaik versi IMDb, dikemas sebagai aplikasi bergaya
-**Apple Arcade**. Ada lima mesin, dan semuanya memegang janji yang sama: apa
-yang kamu lihat berhenti di layar itulah film yang kamu dapat.
+**Apple Arcade**. Ada enam mesin. Lima di antaranya memegang janji yang sama —
+apa yang kamu lihat berhenti di layar itulah film yang kamu dapat — dan satu
+sengaja bukan undian sama sekali.
 
 ![Beranda](docs/screenshot-beranda.png)
 
@@ -15,6 +16,8 @@ yang kamu lihat berhenti di layar itulah film yang kamu dapat.
 ![Roda Putar](docs/screenshot-roda.png)
 
 ![Plinko](docs/screenshot-plinko.png)
+
+![Turnamen](docs/screenshot-turnamen.png)
 
 ## Jalankan
 
@@ -118,9 +121,23 @@ Physics Plinko memang berat ke slot tengah. Yang menjaga keadilannya: **isi
 sembilan slot diundi ulang setiap lemparan**, sehingga peluang tiap film tetap
 `1/pool` dan tidak bergantung slot mana yang sedang ia tempati.
 
+### Turnamen
+
+Satu-satunya mesin yang **bukan undian**. Enam belas film diacak dari pool,
+lalu kamu yang memutuskan di lima belas duel: 16 → 8 → 4 → 2 → juara. Yang
+diundi hanya pesertanya; hasilnya sepenuhnya pilihanmu.
+
+Satu turnamen memakai satu koin, berapa pun jumlah duelnya. Membatalkan di
+tengah jalan tidak mengembalikan koin — mesinnya sudah dipakai.
+
+Karena tidak ada keacakan yang perlu dijaga, `npm run smoke:bracket` menjaga
+strukturnya: jumlah duel harus tepat lima belas, babaknya harus menyusut
+16-8-4-2, film yang sudah kalah tidak boleh muncul lagi, dan juaranya harus
+benar-benar film yang dipilih di duel terakhir.
+
 ### Ekonomi koin
 
-Satu permainan memakai satu koin di kelima mesin, tapi pengembaliannya berbeda
+Satu permainan memakai satu koin di keenam mesin, tapi pengembaliannya berbeda
 karena peluangnya berbeda:
 
 | Mesin | Bisa gagal? | Koin kembali saat menang? |
@@ -130,6 +147,7 @@ karena peluangnya berbeda:
 | Gashapon | tidak, selalu memberi film | tidak — alasan yang sama |
 | Roda Putar | tidak, selalu memberi film | tidak — alasan yang sama |
 | Plinko | tidak, selalu memberi film | tidak — alasan yang sama |
+| Turnamen | tidak, selalu berujung juara | tidak — satu koin untuk lima belas duel |
 
 ## Sinkron antar perangkat
 
@@ -263,6 +281,8 @@ src/
     Plinko/
       board.ts                physics pin dan slot
       index.tsx               titik jatuh, pengundian slot
+    Bracket/
+      index.tsx               duel, babak, kemajuan turnamen
 api/
   state.js                    penyimpanan state bersama (Upstash/Vercel KV)
 ```
@@ -285,6 +305,7 @@ npm run smoke:gacha    # dua tahap Gashapon, termasuk jalur yang mudah tersangku
 npm run smoke:wheel    # hadiah Roda Putar == segmen di bawah jarum
 npm run smoke:posters  # resolver poster, dengan respons Wikipedia dipalsukan
 npm run smoke:plinko   # hadiah Plinko == film pada slot yang kejatuhan bola
+npm run smoke:bracket  # struktur turnamen: 15 duel, 16-8-4-2, juara == pilihan terakhir
 npm run smoke:sync     # dua perangkat berbagi koleksi lewat satu kode
 ```
 
@@ -327,8 +348,15 @@ lewat `role="status"` + `aria-live`. `prefers-reduced-motion` menghentikan
 carousel yang maju sendiri, guncangan layar, dan kilatan kemenangan — physics
 dan permainannya tetap utuh. Situs tidak punya scroll horizontal di lebar ponsel.
 
-## Mesin berikutnya
+## Menambah mesin
 
-Carousel beranda sudah berupa daftar mesin dan layar mesin sudah punya pemilih,
-jadi mesin baru tinggal ditambahkan sebagai satu entri dan satu komponen. Yang
-sudah disiapkan tempatnya: Turnamen 16 Besar.
+Keenam mesin yang direncanakan sudah jadi. Carousel beranda berupa daftar mesin
+dan layar mesin punya pemilihnya sendiri, jadi mesin baru cukup ditambahkan
+sebagai satu entri di `HeroCarousel.tsx`, satu baris di `MachineScreen.tsx`, dan
+satu komponen.
+
+Kalau mesin baru itu memutuskan hadiah lewat animasi, tulis juga suite yang
+membaca keadaan akhir secara independen lalu membandingkannya dengan hadiah
+yang diberikan — itu pola yang dipakai seluruh mesin di sini, dan itulah yang
+menangkap dua cacat nyata selama pengembangan: Roda Putar yang cuma menjangkau
+20 film, dan mesin capit yang sempat memberi hadiah tanpa dicapit.

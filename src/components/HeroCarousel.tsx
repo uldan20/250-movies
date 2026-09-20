@@ -70,9 +70,9 @@ export const SLIDES: Slide[] = [
   {
     id: 'bracket',
     name: 'Turnamen 16',
-    eyebrow: 'Segera hadir',
-    tagline: 'Enam belas film, delapan duel, satu juara pilihanmu.',
-    available: false,
+    eyebrow: 'Baru',
+    tagline: 'Enam belas film, lima belas duel, satu juara pilihanmu.',
+    available: true,
     accent: '#ff453a',
     backdrop: backdropAt(59),
   },

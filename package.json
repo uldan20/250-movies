@@ -15,7 +15,8 @@
     "smoke:gacha": "node scripts/gashapon.mjs",
     "smoke:wheel": "node scripts/wheel.mjs",
     "smoke:sync": "node scripts/sync.mjs",
-    "smoke:plinko": "node scripts/plinko.mjs"
+    "smoke:plinko": "node scripts/plinko.mjs",
+    "smoke:bracket": "node scripts/bracket.mjs"
   },
   "dependencies": {
     "framer-motion": "^11.15.0",
