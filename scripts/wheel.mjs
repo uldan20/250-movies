@@ -19,8 +19,6 @@ const check = (name, ok, extra = '') => {
   if (!ok) fails.push(name)
 }
 
-const coins = async () =>
-  Number((await page.locator('[aria-label$="koin tersisa"]').first().getAttribute('aria-label')).replace(/\D/g, ''))
 const prizeEl = () => page.locator('[role="status"][aria-label^="Kamu mendapat"]')
 
 await page.goto(BASE, { waitUntil: 'domcontentloaded' })
@@ -42,7 +40,6 @@ const initialSegments = new Set(
   (await page.evaluate(() => document.querySelector('[data-segments]').getAttribute('data-segments'))).split(','),
 )
 
-const start = await coins()
 let spins = 0
 let mismatches = 0
 const winners = []
@@ -95,7 +92,6 @@ check(
   new Set(winners).size >= Math.min(spins, 5),
   `${new Set(winners).size} film berbeda dari ${spins} putaran`,
 )
-check('koin terpakai dan tidak dikembalikan', (await coins()) === start - spins, `${start} -> ${await coins()}`)
 check('tidak ada exception JS', errors.length === 0, errors.slice(0, 3).join(' || '))
 
 await browser.close()

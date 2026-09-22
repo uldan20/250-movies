@@ -69,7 +69,7 @@ export default function MovieSheet({
             <button
               className="pill pill--filled flex-1"
               onClick={() => {
-                sfx.coin()
+                sfx.chime()
                 onPlayAgain()
               }}
             >
@@ -160,7 +160,7 @@ export default function MovieSheet({
 
         {onRemoveCatch && prize && (
           <p className="t-caption mt-3 font-light text-mist">
-            Membatalkan hanya menghapus catatannya. Koin tidak terpengaruh.
+            Membatalkan hanya menghapus catatannya dari koleksi.
           </p>
         )}
 

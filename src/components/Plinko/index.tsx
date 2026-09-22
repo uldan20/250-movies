@@ -6,10 +6,7 @@ import { PlinkoBoard, SLOTS } from './board'
 
 type Props = {
   pool: Movie[]
-  coins: number
-  onSpend: () => void
   onPrize: (movie: Movie) => void
-  onInsertCoin: () => void
   onOpenFilters: () => void
 }
 
@@ -36,10 +33,7 @@ function drawSlots(pool: Movie[]): Movie[] {
 
 export default function Plinko({
   pool,
-  coins,
-  onSpend,
   onPrize,
-  onInsertCoin,
   onOpenFilters,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -83,7 +77,7 @@ export default function Plinko({
     boardRef.current?.setSlotLabels(next.map((m) => `#${m.rank}`))
   }, [pool])
 
-  const canDrop = phase === 'idle' && coins > 0 && pool.length > 0
+  const canDrop = phase === 'idle' && pool.length > 0
 
   const drop = useCallback(() => {
     const board = boardRef.current
@@ -93,11 +87,10 @@ export default function Plinko({
     setSlots(next)
     setLanded(null)
     board.setSlotLabels(next.map((m) => `#${m.rank}`))
-    onSpend()
-    sfx.coin()
+    sfx.chime()
     setPhase('falling')
     board.drop()
-  }, [canDrop, onSpend, pool])
+  }, [canDrop, pool])
 
   const setDrop = useCallback((fraction: number) => {
     boardRef.current?.setDropX(fraction)
@@ -110,7 +103,7 @@ export default function Plinko({
     return (e.clientX - rect.left) / rect.width
   }
 
-  const blocked = pool.length === 0 || coins === 0
+  const blocked = pool.length === 0
 
   return (
     <div className="mx-auto w-full max-w-md px-5">
@@ -151,27 +144,10 @@ export default function Plinko({
 
         {blocked && (
           <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-black/90 px-8 text-center">
-            {pool.length === 0 ? (
-              <>
-                <p className="t-body font-light text-ash">Tidak ada film yang lolos filter.</p>
-                <button onClick={onOpenFilters} className="pill pill--filled">
-                  Ubah filter
-                </button>
-              </>
-            ) : (
-              <>
-                <p className="t-subheading font-semibold text-frost">Koin habis</p>
-                <button
-                  onClick={() => {
-                    sfx.coin()
-                    onInsertCoin()
-                  }}
-                  className="pill pill--filled"
-                >
-                  Masukkan koin
-                </button>
-              </>
-            )}
+            <p className="t-body font-light text-ash">Tidak ada film yang lolos filter.</p>
+            <button onClick={onOpenFilters} className="pill pill--filled">
+              Ubah filter
+            </button>
           </div>
         )}
       </div>
@@ -202,13 +178,7 @@ export default function Plinko({
         </button>
       </div>
 
-      <p
-        className="t-caption mt-5 text-center font-light text-mist"
-        aria-label={`${coins} koin tersisa`}
-      >
-        {coins} koin · satu lemparan memakai satu koin, dan selalu memberi film
-      </p>
-      <p className="t-caption mt-1 text-center font-light text-mist">
+      <p className="t-caption mt-5 text-center font-light text-mist">
         Isi sembilan slot diundi ulang tiap lemparan, jadi peluang tiap film tetap sama
       </p>
     </div>

@@ -469,6 +469,29 @@ body {
   -webkit-backdrop-filter: saturate(180%) blur(20px);
 }
 
+/*
+ * Di layar lebar kartu tidak lagi ditaruh di tengah: judul, baris kategori, dan
+ * rak di bawahnya semuanya rata kiri, jadi kartu yang mengambang sendirian di
+ * tengah terbaca seperti salah tempat. Di ponsel penengahan tetap dipakai.
+ */
+@media (min-width: 640px) {
+  .gs-track {
+    padding-inline-start: 20px;
+  }
+
+  .gs-caption {
+    margin-inline: 0;
+    max-width: 30rem;
+    padding-inline: 20px;
+    text-align: left;
+  }
+
+  .gs-dots {
+    justify-content: flex-start;
+    padding-inline-start: 20px;
+  }
+}
+
 /* ---------- tombol putar mengambang ---------- */
 
 /*

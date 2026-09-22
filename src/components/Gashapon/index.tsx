@@ -6,10 +6,7 @@ import PosterImage from '../PosterImage'
 
 type Props = {
   pool: Movie[]
-  coins: number
-  onSpend: () => void
   onPrize: (movie: Movie) => void
-  onInsertCoin: () => void
   onOpenFilters: () => void
 }
 
@@ -33,10 +30,7 @@ function shortestDelta(from: number, to: number): number {
 
 export default function Gashapon({
   pool,
-  coins,
-  onSpend,
   onPrize,
-  onInsertCoin,
   onOpenFilters,
 }: Props) {
   const knobRef = useRef<HTMLButtonElement>(null)
@@ -51,7 +45,7 @@ export default function Gashapon({
   const onPrizeRef = useRef(onPrize)
   onPrizeRef.current = onPrize
 
-  const canTurn = phase === 'idle' && coins > 0 && pool.length > 0
+  const canTurn = phase === 'idle' && pool.length > 0
 
   // Kapsul hias di dalam kubah; posisinya dibekukan supaya tidak melompat
   // setiap render.
@@ -83,10 +77,9 @@ export default function Gashapon({
 
   const beginTurn = useCallback(() => {
     if (!canTurn) return
-    onSpend()
-    sfx.coin()
+    sfx.chime()
     setPhase('turning')
-  }, [canTurn, onSpend])
+  }, [canTurn])
 
   /** Putaran otomatis satu lingkaran penuh — jalur untuk keyboard dan klik. */
   const autoTurn = useCallback(() => {
@@ -153,11 +146,11 @@ export default function Gashapon({
 
   function endPointer() {
     lastAngle.current = null
-    // Belum satu putaran penuh: kenop kembali ke awal, tapi koinnya sudah
-    // terpakai — jadi lanjutkan otomatis alih-alih menghanguskannya.
+    // Belum satu putaran penuh: kenop kembali ke awal, tapi putarannya sudah
+    // dimulai — jadi lanjutkan otomatis alih-alih menghanguskannya.
     if (phase === 'turning' && turn < 360) {
-      // Termasuk saat kenop cuma ditekan tanpa diputar: tanpa ini koin sudah
-      // terpakai sementara mesin tersangkut di fase memutar.
+      // Termasuk saat kenop cuma ditekan tanpa diputar: tanpa ini mesin
+      // tersangkut di fase memutar tanpa pernah mengeluarkan kapsul.
       const from = turn
       const start = performance.now()
       const step = (now: number) => {
@@ -190,7 +183,7 @@ export default function Gashapon({
     }, 420)
   }
 
-  const blocked = pool.length === 0 || coins === 0
+  const blocked = pool.length === 0
 
   return (
     <div className="mx-auto w-full max-w-md px-5">
@@ -308,27 +301,10 @@ export default function Gashapon({
 
         {blocked && (
           <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-black/90 px-8 text-center">
-            {pool.length === 0 ? (
-              <>
-                <p className="t-body font-light text-ash">Tidak ada film yang lolos filter.</p>
-                <button onClick={onOpenFilters} className="pill pill--filled">
-                  Ubah filter
-                </button>
-              </>
-            ) : (
-              <>
-                <p className="t-subheading font-semibold text-frost">Koin habis</p>
-                <button
-                  onClick={() => {
-                    sfx.coin()
-                    onInsertCoin()
-                  }}
-                  className="pill pill--filled"
-                >
-                  Masukkan koin
-                </button>
-              </>
-            )}
+            <p className="t-body font-light text-ash">Tidak ada film yang lolos filter.</p>
+            <button onClick={onOpenFilters} className="pill pill--filled">
+              Ubah filter
+            </button>
           </div>
         )}
       </div>
@@ -346,13 +322,7 @@ export default function Gashapon({
         </button>
       </div>
 
-      <p
-        className="t-caption mt-5 text-center font-light text-mist"
-        aria-label={`${coins} koin tersisa`}
-      >
-        {coins} koin · satu putaran memakai satu koin, dan selalu memberi film
-      </p>
-      <p className="t-caption mt-1 text-center font-light text-mist">
+      <p className="t-caption mt-5 text-center font-light text-mist">
         Kenopnya bisa diputar dengan jari, atau tekan Putar
       </p>
     </div>

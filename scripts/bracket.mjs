@@ -18,8 +18,6 @@ const check = (name, ok, extra = '') => {
   if (!ok) fails.push(name)
 }
 
-const coins = async () =>
-  Number((await page.locator('[aria-label$="koin tersisa"]').first().getAttribute('aria-label')).replace(/\D/g, ''))
 const prizeEl = () => page.locator('[role="status"][aria-label^="Kamu mendapat"]')
 
 await page.goto(BASE, { waitUntil: 'domcontentloaded' })
@@ -29,12 +27,8 @@ await page.waitForTimeout(600)
 await page.locator('button[role="tab"][data-machine="bracket"]').click()
 await page.waitForTimeout(700)
 
-const start = await coins()
 await page.locator('button:has-text("Mulai turnamen")').click()
 await page.waitForTimeout(600)
-
-const afterStart = await coins()
-check('satu koin dipakai saat turnamen dimulai', afterStart === start - 1, `${start} -> ${afterStart}`)
 
 const bracketSize = Number(await page.locator('[data-bracket-size]').getAttribute('data-bracket-size'))
 check('turnamen 16 besar', bracketSize === 16, String(bracketSize))
@@ -80,7 +74,6 @@ check('film yang kalah tidak jadi juara', !eliminated.has(prizeId))
 
 await page.locator('button[aria-label="Tutup"]').click()
 await page.waitForTimeout(400)
-check('hanya satu koin untuk seluruh turnamen', (await coins()) === start - 1, `${start} -> ${await coins()}`)
 check('mesin kembali siap dimulai', (await page.locator('button:has-text("Mulai turnamen")').count()) === 1)
 check('tidak ada exception JS', errors.length === 0, errors.slice(0, 3).join(' || '))
 

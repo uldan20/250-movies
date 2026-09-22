@@ -22,11 +22,9 @@ export type SyncStatus =
   | 'not_configured'
   | 'error'
 
-const STARTING_COINS = 12
 const PUSH_DEBOUNCE_MS = 800
 
 export function useArcade() {
-  const [coins, setCoins] = useState(() => readJSON<number>(KEYS.coins, STARTING_COINS))
   const [history, setHistory] = useState(() => readJSON<HistoryEntry[]>(KEYS.history, []))
   const [watchlist, setWatchlist] = useState(() => readJSON<string[]>(KEYS.watchlist, []))
   const [seen, setSeen] = useState(() => readJSON<string[]>(KEYS.seen, []))
@@ -34,7 +32,6 @@ export function useArcade() {
     readJSON<Filters>(`${KEYS.settings}:filters`, DEFAULT_FILTERS),
   )
 
-  useEffect(() => writeJSON(KEYS.coins, coins), [coins])
   useEffect(() => writeJSON(KEYS.history, history), [history])
   useEffect(() => writeJSON(KEYS.watchlist, watchlist), [watchlist])
   useEffect(() => writeJSON(KEYS.seen, seen), [seen])
@@ -57,15 +54,14 @@ export function useArcade() {
 
   const applyRemote = useCallback((data: SyncData) => {
     skipPush.current = true
-    setCoins(data.coins)
     setHistory(data.history)
     setWatchlist(data.watchlist)
     setSeen(data.seen)
   }, [])
 
   const snapshot = useCallback(
-    (): SyncData => ({ coins, history, watchlist, seen }),
-    [coins, history, watchlist, seen],
+    (): SyncData => ({ history, watchlist, seen }),
+    [history, watchlist, seen],
   )
   const snapshotRef = useRef(snapshot)
   snapshotRef.current = snapshot
@@ -143,7 +139,7 @@ export function useArcade() {
       setSyncStatus(res.reason === 'offline' ? 'offline' : res.reason)
     }, PUSH_DEBOUNCE_MS)
     return () => window.clearTimeout(timer)
-  }, [applyRemote, coins, history, watchlist, seen, syncCode, syncReady])
+  }, [applyRemote, history, watchlist, seen, syncCode, syncReady])
 
   const connectSync = useCallback(
     (code: string) => {
@@ -172,16 +168,8 @@ export function useArcade() {
 
   const pool = useMemo(() => applyFilters(MOVIES, filters, seen), [filters, seen])
 
-  const spendCoin = useCallback(() => setCoins((c) => Math.max(0, c - 1)), [])
-  const addCoins = useCallback((n: number) => setCoins((c) => Math.min(99, c + n)), [])
-
-  /**
-   * @param refundCoin Kembalikan koin yang baru dipakai. Mesin yang bisa gagal
-   * (mesin capit) mengembalikannya, sehingga yang mahal adalah meleset. Mesin
-   * yang selalu memberi hadiah tidak, kalau tidak permainannya jadi gratis.
-   */
-  const recordWin = useCallback((movie: Movie, refundCoin: boolean) => {
-    if (refundCoin) setCoins((c) => Math.min(99, c + 1))
+  /** Mesin boleh dimainkan sesuka hati: yang dicatat hanya filmnya. */
+  const recordWin = useCallback((movie: Movie) => {
     setHistory((h) => [{ id: movie.id, at: Date.now() }, ...h].slice(0, 120))
   }, [])
 
@@ -196,9 +184,6 @@ export function useArcade() {
   /**
    * Hapus satu film dari riwayat tangkapan. Satu film bisa tercatat beberapa
    * kali, jadi seluruh entri untuk film itu ikut dibuang.
-   *
-   * Koin tidak dikembalikan maupun ditarik: menang sudah mengembalikan koinnya
-   * saat itu juga bila mesinnya memang mengembalikan.
    */
   const removeCatch = useCallback((id: string) => {
     setHistory((h) => h.filter((entry) => entry.id !== id))
@@ -217,19 +202,15 @@ export function useArcade() {
     setHistory([])
     setWatchlist([])
     setSeen([])
-    setCoins(STARTING_COINS)
   }, [])
 
   return {
-    coins,
     history,
     watchlist,
     seen,
     filters,
     pool,
     setFilters,
-    spendCoin,
-    addCoins,
     recordWin,
     toggleWatchlist,
     toggleSeen,

@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit",
     "smoke": "node scripts/smoke.mjs",
-    "smoke:coins": "node scripts/coin-invariant.mjs",
+    "smoke:prize": "node scripts/prize-invariant.mjs",
     "smoke:posters": "node scripts/poster-resolver.mjs",
     "smoke:case": "node scripts/case-opening.mjs",
     "smoke:gacha": "node scripts/gashapon.mjs",

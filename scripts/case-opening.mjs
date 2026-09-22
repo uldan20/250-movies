@@ -2,9 +2,6 @@
  * Menjaga janji visual Case Opening: ubin yang berhenti di bawah penanda harus
  * benar-benar film yang diberikan. Kalau invarian ini pecah, animasinya
  * berbohong kepada pemain.
- *
- * Sekalian memeriksa ekonomi koinnya: mesin ini selalu memberi hadiah, jadi
- * koinnya memang terpakai dan tidak dikembalikan.
  */
 import { chromium } from 'playwright'
 
@@ -21,10 +18,6 @@ const check = (name, ok, extra = '') => {
   if (!ok) fails.push(name)
 }
 
-const coins = async () =>
-  Number(
-    (await page.locator('[aria-label$="koin tersisa"]').first().getAttribute('aria-label')).replace(/\D/g, ''),
-  )
 const prizeEl = () => page.locator('[role="status"][aria-label^="Kamu mendapat"]')
 
 await page.goto(BASE, { waitUntil: 'domcontentloaded' })
@@ -37,7 +30,6 @@ await page.waitForTimeout(900)
 check('strip poster terpasang', (await page.locator('[data-winner] [data-movie]').count()) > 20,
   `${await page.locator('[data-winner] [data-movie]').count()} ubin`)
 
-const start = await coins()
 let spins = 0
 let mismatches = 0
 
@@ -72,9 +64,6 @@ for (let i = 0; i < SPINS; i++) {
 }
 
 check('hadiah selalu ubin yang berhenti di penanda', mismatches === 0, `${mismatches} tidak cocok dari ${spins}`)
-
-const finalCoins = await coins()
-check('koin terpakai dan tidak dikembalikan', finalCoins === start - spins, `${start} -> ${finalCoins}, diharapkan ${start - spins}`)
 
 await page.locator('nav button[aria-label="Koleksi"]').click()
 await page.waitForTimeout(800)

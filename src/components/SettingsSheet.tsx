@@ -92,7 +92,7 @@ export default function SettingsSheet({ open, sync, onClose, onResetProgress }: 
       <Group title="Sinkron antar perangkat">
         <p className="t-body-sm font-light text-ash">
           Koleksi disimpan di browser masing-masing perangkat. Sambungkan keduanya dengan satu kode
-          supaya koin, tangkapan, watchlist, dan tanda ditonton mengikuti ke mana pun kamu buka.
+          supaya tangkapan, watchlist, dan tanda ditonton mengikuti ke mana pun kamu buka.
         </p>
 
         <p className="t-caption mt-3 text-mist" role="status">
@@ -146,7 +146,7 @@ export default function SettingsSheet({ open, sync, onClose, onResetProgress }: 
           <>
             <button
               onClick={() => {
-                sfx.coin()
+                sfx.chime()
                 sync.connect(generateCode())
               }}
               className="pill pill--filled mt-3 w-full"
@@ -170,7 +170,7 @@ export default function SettingsSheet({ open, sync, onClose, onResetProgress }: 
                 onClick={() => {
                   const code = normalizeCode(joinCode)
                   if (!isValidCode(code)) return
-                  sfx.coin()
+                  sfx.chime()
                   sync.connect(code)
                   setJoinCode('')
                 }}
@@ -233,7 +233,7 @@ export default function SettingsSheet({ open, sync, onClose, onResetProgress }: 
       <Group title="Progres">
         <button
           onClick={() => {
-            if (window.confirm('Hapus riwayat, watchlist, tanda ditonton, dan reset koin?')) {
+            if (window.confirm('Hapus riwayat, watchlist, dan tanda ditonton?')) {
               sfx.fail()
               onResetProgress()
             }

@@ -280,11 +280,11 @@ export default function GameSelector({ current, onPlay, onHighlight }: Props) {
         </div>
       </div>
 
-      <p className="t-body-sm relative mx-auto mt-4 min-h-[2.6em] max-w-[19rem] px-6 text-center font-light text-ash">
+      <p className="gs-caption t-body-sm relative mx-auto mt-4 min-h-[2.6em] max-w-[19rem] px-6 text-center font-light text-ash">
         {active.tagline}
       </p>
 
-      <div className="relative flex items-center justify-center gap-2 pb-2 pt-4">
+      <div className="gs-dots relative flex items-center justify-center gap-2 pb-2 pt-4">
         {games.length > 1 &&
           games.map((game, i) => (
             <button

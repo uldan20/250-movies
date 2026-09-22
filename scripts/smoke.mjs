@@ -16,8 +16,6 @@ const check = (name, ok, extra = '') => {
   if (!ok) fails.push(name)
 }
 
-const coins = async () =>
-  Number((await page.locator('[aria-label$="koin tersisa"]').first().getAttribute('aria-label')).replace(/\D/g, ''))
 const prizeModal = () => page.locator('[role="status"][aria-label^="Kamu mendapat"]')
 const tab = (label) => page.locator(`nav button[aria-label="${label}"]`)
 
@@ -40,15 +38,12 @@ check('kategori "Semua" mengembalikan semua', (await page.locator('[data-game-ca
 check('rak konten terisi', (await page.locator('h2').count()) >= 4, `${await page.locator('h2').count()} rak`)
 check('tab bar punya empat tab', (await page.locator('nav button').count()) === 4)
 
-const startCoins = await coins()
-
 // Masuk mesin lewat tombol hero, seperti pengguna sungguhan.
 await page.locator('button[aria-label^="Mainkan"]').first().click()
 await page.waitForTimeout(4200)
 await page.screenshot({ path: `${shots}/a2-mesin.png` })
 
 check('tidak ada hadiah sebelum capit', (await prizeModal().count()) === 0)
-check('koin tidak berubah saat menata diri', (await coins()) === startCoins, `${startCoins} -> ${await coins()}`)
 
 const painted = await page.evaluate(() => {
   const c = document.querySelector('canvas')
@@ -70,10 +65,9 @@ for (let attempt = 1; attempt <= 14 && !prize; attempt++) {
   await page.waitForTimeout(120 + Math.random() * 600)
   await page.keyboard.up(dir)
 
-  const before = await coins()
   await page.keyboard.press('Space')
   await page.waitForTimeout(400)
-  if ((await coins()) === before) { await page.waitForTimeout(600); continue }
+  if ((await status.innerText()).trim().startsWith('Geser derek')) { await page.waitForTimeout(600); continue }
   drops++
 
   const deadline = Date.now() + 18000
@@ -84,10 +78,10 @@ for (let attempt = 1; attempt <= 14 && !prize; attempt++) {
     if (text.startsWith('Geser derek') && phases.size > 1) break
     await page.waitForTimeout(200)
   }
-  console.log(`  capit ${drops}: koin ${before} -> ${await coins()}${prize ? ' | ' + prize : ''}`)
+  console.log(`  capit ${drops}${prize ? ': ' + prize : ''}`)
 }
 
-check('capit memotong koin', drops > 0)
+check('capitan benar-benar turun', drops > 0, `${drops} capitan`)
 check('siklus derek melewati beberapa fase', phases.size >= 3, [...phases].join(' / '))
 check('hadiah didapat lewat capitan', prize != null, prize ?? 'tidak ada dalam 14 percobaan')
 
@@ -112,7 +106,6 @@ await page.waitForTimeout(600)
 check('filter tidak memicu hadiah gratis', (await prizeModal().count()) === 0)
 
 // Koleksi + hapus satu tangkapan tanpa mereset progres
-const coinsBeforeDelete = await coins()
 await tab('Koleksi').click()
 await page.waitForTimeout(900)
 await page.screenshot({ path: `${shots}/a5-koleksi.png` })
@@ -127,12 +120,6 @@ await page.locator('button[aria-label^="Hapus "]').first().click()
 await page.waitForTimeout(400)
 const afterDelete = await page.locator('main .grid > div').count()
 check('satu tangkapan terhapus', afterDelete === beforeDelete - 1, `${beforeDelete} -> ${afterDelete}`)
-
-await tab('Mesin').click()
-await page.waitForTimeout(700)
-check('menghapus tangkapan tidak mengubah koin', (await coins()) === coinsBeforeDelete, `${coinsBeforeDelete} -> ${await coins()}`)
-await tab('Koleksi').click()
-await page.waitForTimeout(500)
 
 // Cari
 await tab('Cari').click()

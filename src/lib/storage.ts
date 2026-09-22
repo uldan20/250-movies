@@ -30,7 +30,6 @@ export function removeKey(key: string): void {
 }
 
 export const KEYS = {
-  coins: 'arcade250:coins',
   history: 'arcade250:history',
   watchlist: 'arcade250:watchlist',
   seen: 'arcade250:seen',

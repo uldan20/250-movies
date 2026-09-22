@@ -3,7 +3,6 @@ import { KEYS, readJSON, removeKey, writeJSON } from './storage'
 
 /** Isi yang dibagikan antar perangkat. Filter sengaja tidak ikut: itu preferensi per-perangkat. */
 export type SyncData = {
-  coins: number
   history: HistoryEntry[]
   watchlist: string[]
   seen: string[]

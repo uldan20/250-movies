@@ -9,10 +9,11 @@ type Props = {
   machine: MachineId
   history: string[]
   watchlist: string[]
-  coins: number
+  watchlistCount: number
   activeFilters: number
   onPlay: (id: MachineId) => void
   onHighlight: (id: MachineId) => void
+  onOpenLibrary: () => void
   onSelectMovie: (m: Movie) => void
   onApplyShelf: (filter: Filters) => void
   onOpenSearch: () => void
@@ -24,10 +25,11 @@ export default function HomeScreen({
   machine,
   history,
   watchlist,
-  coins,
+  watchlistCount,
   activeFilters,
   onPlay,
   onHighlight,
+  onOpenLibrary,
   onSelectMovie,
   onApplyShelf,
   onOpenSearch,
@@ -62,14 +64,27 @@ export default function HomeScreen({
 
         <h1 className="t-body text-center font-semibold text-frost">Beranda</h1>
 
-        <span
-          className="t-body-sm relative flex h-10 items-center gap-1.5 rounded-full border border-hairline bg-carbon px-3 font-semibold text-frost"
-          aria-label={`${coins} koin tersisa`}
+        {/* Pintasan ke Koleksi: isi watchlist adalah alasan aplikasi ini ada. */}
+        <button
+          onClick={onOpenLibrary}
+          aria-label={`${watchlistCount} film di watchlist`}
+          className="t-body-sm relative flex h-10 items-center gap-1.5 rounded-full border border-hairline bg-carbon px-3 font-semibold text-frost transition-colors hover:bg-slate"
         >
-          <span aria-hidden="true" className="h-3.5 w-3.5 rounded-full border border-frost/70" />
-          {coins}
-          {coins === 0 && <span className="chrome-dot" aria-hidden="true" />}
-        </span>
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M12 20.3 4.6 12.9a4.6 4.6 0 0 1 6.5-6.5l.9.9.9-.9a4.6 4.6 0 0 1 6.5 6.5z" />
+          </svg>
+          {watchlistCount}
+        </button>
       </header>
 
       <div className="flex items-center gap-2.5 px-5">

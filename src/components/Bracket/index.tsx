@@ -7,10 +7,7 @@ import PosterImage from '../PosterImage'
 
 type Props = {
   pool: Movie[]
-  coins: number
-  onSpend: () => void
   onPrize: (movie: Movie) => void
-  onInsertCoin: () => void
   onOpenFilters: () => void
 }
 
@@ -32,10 +29,7 @@ function bracketSize(poolSize: number): number {
 
 export default function Bracket({
   pool,
-  coins,
-  onSpend,
   onPrize,
-  onInsertCoin,
   onOpenFilters,
 }: Props) {
   /** Peserta babak yang sedang berjalan. Kosong berarti turnamen belum dimulai. */
@@ -45,7 +39,7 @@ export default function Bracket({
 
   const size = bracketSize(pool.length)
   const running = entrants.length > 0
-  const canStart = !running && coins > 0 && size >= 2
+  const canStart = !running && size >= 2
 
   // Pasangan duel ditentukan oleh berapa banyak pemenang yang sudah terkumpul
   // di babak ini — tidak ada penghitung terpisah yang bisa melenceng.
@@ -64,12 +58,11 @@ export default function Bracket({
 
   const start = useCallback(() => {
     if (!canStart) return
-    onSpend()
-    sfx.coin()
+    sfx.chime()
     setEntrants(sample(pool, size))
     setWinners([])
     setPicked(null)
-  }, [canStart, onSpend, pool, size])
+  }, [canStart, pool, size])
 
   const pick = useCallback(
     (movie: Movie) => {
@@ -105,7 +98,7 @@ export default function Bracket({
   )
 
   const abandon = useCallback(() => {
-    if (!window.confirm('Batalkan turnamen? Koin yang sudah dipakai tidak kembali.')) return
+    if (!window.confirm('Batalkan turnamen? Babak yang sudah berjalan akan hilang.')) return
     sfx.fail()
     setEntrants([])
     setWinners([])
@@ -141,7 +134,7 @@ export default function Bracket({
     )
   }
 
-  const blocked = size < 2 || coins === 0
+  const blocked = size < 2
 
   return (
     <div
@@ -156,10 +149,10 @@ export default function Bracket({
             <div className="mb-1 flex items-baseline justify-between">
               <p className="t-eyebrow text-signal-blue">
                 {ROUND_LABEL[entrants.length] ?? `${entrants.length} Besar`}
-              </p>
+            </p>
               <p className="t-caption text-mist">
                 Duel {duelsDone + 1} dari {totalDuels}
-              </p>
+            </p>
             </div>
 
             {/* kemajuan turnamen */}
@@ -201,47 +194,24 @@ export default function Bracket({
             {size >= 2 && (
               <button onClick={start} disabled={!canStart} className="pill pill--filled mt-1">
                 Mulai turnamen
-              </button>
+            </button>
             )}
           </div>
         )}
 
         {blocked && (
           <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-black/90 px-8 text-center">
-            {size < 2 ? (
-              <>
-                <p className="t-body font-light text-ash">
-                  Tidak cukup film yang lolos filter untuk dipertandingkan.
-                </p>
-                <button onClick={onOpenFilters} className="pill pill--filled">
-                  Ubah filter
-                </button>
-              </>
-            ) : (
-              <>
-                <p className="t-subheading font-semibold text-frost">Koin habis</p>
-                <button
-                  onClick={() => {
-                    sfx.coin()
-                    onInsertCoin()
-                  }}
-                  className="pill pill--filled"
-                >
-                  Masukkan koin
-                </button>
-              </>
-            )}
+            <p className="t-body font-light text-ash">
+              Tidak cukup film yang lolos filter untuk dipertandingkan.
+            </p>
+            <button onClick={onOpenFilters} className="pill pill--filled">
+              Ubah filter
+            </button>
           </div>
         )}
       </div>
 
-      <p
-        className="t-caption mt-5 text-center font-light text-mist"
-        aria-label={`${coins} koin tersisa`}
-      >
-        {coins} koin · satu turnamen memakai satu koin, berapa pun jumlah duelnya
-      </p>
-      <p className="t-caption mt-1 text-center font-light text-mist">
+      <p className="t-caption mt-5 text-center font-light text-mist">
         Satu-satunya mesin yang bukan undian — pesertanya diacak, juaranya kamu yang tentukan
       </p>
     </div>

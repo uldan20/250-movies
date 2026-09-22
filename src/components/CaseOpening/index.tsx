@@ -6,10 +6,7 @@ import PosterImage from '../PosterImage'
 
 type Props = {
   pool: Movie[]
-  coins: number
-  onSpend: () => void
   onPrize: (movie: Movie) => void
-  onInsertCoin: () => void
   onOpenFilters: () => void
 }
 
@@ -31,10 +28,7 @@ const PHASE_TEXT: Record<Phase, string> = {
 
 export default function CaseOpening({
   pool,
-  coins,
-  onSpend,
   onPrize,
-  onInsertCoin,
   onOpenFilters,
 }: Props) {
   const viewportRef = useRef<HTMLDivElement>(null)
@@ -66,7 +60,7 @@ export default function CaseOpening({
     [],
   )
 
-  const canPlay = phase !== 'spinning' && coins > 0 && pool.length > 0
+  const canPlay = phase !== 'spinning' && pool.length > 0
 
   const open = useCallback(() => {
     const viewport = viewportRef.current
@@ -81,8 +75,7 @@ export default function CaseOpening({
     setStrip(next)
     setWinner(prize)
     setPhase('spinning')
-    onSpend()
-    sfx.coin()
+    sfx.chime()
 
     const cw = viewport.clientWidth
     const startX = cw / 2 - (2 * STEP + TILE_W / 2)
@@ -122,7 +115,7 @@ export default function CaseOpening({
       buzz([20, 30, 60])
       onPrizeRef.current(prize)
     }
-  }, [canPlay, onSpend, pool])
+  }, [canPlay, pool])
 
   return (
     <div className="mx-auto w-full max-w-md px-5">
@@ -180,20 +173,6 @@ export default function CaseOpening({
             </button>
           </div>
         )}
-        {coins === 0 && pool.length > 0 && (
-          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-black/90 px-8 text-center">
-            <p className="t-subheading font-semibold text-frost">Koin habis</p>
-            <button
-              onClick={() => {
-                sfx.coin()
-                onInsertCoin()
-              }}
-              className="pill pill--filled"
-            >
-              Masukkan koin
-            </button>
-          </div>
-        )}
       </div>
 
       <p className="t-body-sm mt-4 text-center font-light text-ash" aria-live="polite" role="status">
@@ -205,13 +184,9 @@ export default function CaseOpening({
           Buka case
         </button>
       </div>
-
-      <p
-        className="t-caption mt-5 text-center font-light text-mist"
-        aria-label={`${coins} koin tersisa`}
-      >
-        {coins} koin · satu putaran memakai satu koin, dan selalu memberi film
-      </p>
+<p className="t-caption mt-5 text-center font-light text-mist">
+  Tiap putaran selalu berhenti di satu film
+</p>
     </div>
   )
 }

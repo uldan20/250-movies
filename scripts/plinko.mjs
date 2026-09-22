@@ -22,8 +22,6 @@ const check = (name, ok, extra = '') => {
   if (!ok) fails.push(name)
 }
 
-const coins = async () =>
-  Number((await page.locator('[aria-label$="koin tersisa"]').first().getAttribute('aria-label')).replace(/\D/g, ''))
 const prizeEl = () => page.locator('[role="status"][aria-label^="Kamu mendapat"]')
 
 await page.goto(BASE, { waitUntil: 'domcontentloaded' })
@@ -36,7 +34,6 @@ await page.waitForTimeout(900)
 const board = page.locator('[data-slots]')
 check('papan punya sembilan slot', (await board.getAttribute('data-slots')).split(',').length === 9)
 
-const start = await coins()
 let drops = 0
 let mismatches = 0
 const landedSlots = new Set()
@@ -80,7 +77,6 @@ check('hadiah selalu film pada slot yang kejatuhan bola', mismatches === 0, `${m
 check('isi slot diundi ulang tiap lemparan', slotSets.size === drops, `${slotSets.size} susunan dari ${drops} lemparan`)
 check('bola tidak selalu jatuh ke slot yang sama', landedSlots.size > 1, `${landedSlots.size} slot berbeda`)
 check('tiap lemparan menghasilkan film', winners.every((w) => !!w))
-check('koin terpakai dan tidak dikembalikan', (await coins()) === start - drops, `${start} -> ${await coins()}`)
 check('tidak ada exception JS', errors.length === 0, errors.slice(0, 3).join(' || '))
 
 await browser.close()

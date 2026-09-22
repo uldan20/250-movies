@@ -5,10 +5,7 @@ import { buzz, sfx } from '../../lib/sound'
 
 type Props = {
   pool: Movie[]
-  coins: number
-  onSpend: () => void
   onPrize: (movie: Movie) => void
-  onInsertCoin: () => void
   onOpenFilters: () => void
 }
 
@@ -43,10 +40,7 @@ export function segmentAtPointer(rotation: number, count: number): number {
 
 export default function Wheel({
   pool,
-  coins,
-  onSpend,
   onPrize,
-  onInsertCoin,
   onOpenFilters,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -74,7 +68,7 @@ export default function Wheel({
     setRotation(0)
   }, [pool, count])
 
-  const canSpin = phase === 'idle' && coins > 0 && pool.length > 0
+  const canSpin = phase === 'idle' && pool.length > 0
 
   // ---------- gambar ----------
 
@@ -168,8 +162,7 @@ export default function Wheel({
       setSegments(nextSegments)
       setWinnerIndex(null)
       setPhase('spinning')
-      onSpend()
-      sfx.coin()
+      sfx.chime()
 
       const seg = 360 / nextSegments.length
       // Berhenti di tengah segmen pemenang, dengan kemelesetan yang tetap jauh
@@ -209,7 +202,7 @@ export default function Wheel({
       }
       rafRef.current = requestAnimationFrame(step)
     },
-    [count, onSpend, pool, rotation],
+    [count, pool, rotation],
   )
 
   // ---------- lemparan jari ----------
@@ -257,7 +250,7 @@ export default function Wheel({
   }
 
   const segmentIds = useMemo(() => segments.map((m) => m.id).join(','), [segments])
-  const blocked = pool.length === 0 || coins === 0
+  const blocked = pool.length === 0
 
   return (
     <div className="mx-auto w-full max-w-md px-5">
@@ -285,27 +278,10 @@ export default function Wheel({
 
         {blocked && (
           <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-black/90 px-8 text-center">
-            {pool.length === 0 ? (
-              <>
-                <p className="t-body font-light text-ash">Tidak ada film yang lolos filter.</p>
-                <button onClick={onOpenFilters} className="pill pill--filled">
-                  Ubah filter
-                </button>
-              </>
-            ) : (
-              <>
-                <p className="t-subheading font-semibold text-frost">Koin habis</p>
-                <button
-                  onClick={() => {
-                    sfx.coin()
-                    onInsertCoin()
-                  }}
-                  className="pill pill--filled"
-                >
-                  Masukkan koin
-                </button>
-              </>
-            )}
+            <p className="t-body font-light text-ash">Tidak ada film yang lolos filter.</p>
+            <button onClick={onOpenFilters} className="pill pill--filled">
+              Ubah filter
+            </button>
           </div>
         )}
       </div>
@@ -324,13 +300,7 @@ export default function Wheel({
         </button>
       </div>
 
-      <p
-        className="t-caption mt-5 text-center font-light text-mist"
-        aria-label={`${coins} koin tersisa`}
-      >
-        {coins} koin · satu putaran memakai satu koin, dan selalu memberi film
-      </p>
-      <p className="t-caption mt-1 text-center font-light text-mist">
+      <p className="t-caption mt-5 text-center font-light text-mist">
         Rodanya bisa dilempar dengan jari — makin kencang, makin lama berputar
       </p>
       <p className="t-caption mt-1 text-center font-light text-mist">

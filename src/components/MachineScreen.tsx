@@ -14,12 +14,9 @@ type Props = {
   machine: MachineId
   onChangeMachine: (id: MachineId) => void
   pool: Movie[]
-  coins: number
   activeFilters: number
-  onSpend: () => void
-  onPrize: (movie: Movie, refundCoin: boolean) => void
+  onPrize: (movie: Movie) => void
   onMiss: () => void
-  onInsertCoin: () => void
   onOpenFilters: () => void
   onOpenSettings: () => void
 }
@@ -40,12 +37,9 @@ export default function MachineScreen({
   machine,
   onChangeMachine,
   pool,
-  coins,
   activeFilters,
-  onSpend,
   onPrize,
   onMiss,
-  onInsertCoin,
   onOpenFilters,
   onOpenSettings,
 }: Props) {
@@ -94,56 +88,38 @@ export default function MachineScreen({
       {machine === 'claw' ? (
         <ClawMachine
           pool={pool}
-          coins={coins}
-          onSpend={onSpend}
-          onPrize={(m) => onPrize(m, true)}
+          onPrize={onPrize}
           onMiss={onMiss}
-          onInsertCoin={onInsertCoin}
           onOpenFilters={onOpenFilters}
         />
       ) : machine === 'case' ? (
         <CaseOpening
           pool={pool}
-          coins={coins}
-          onSpend={onSpend}
-          onPrize={(m) => onPrize(m, false)}
-          onInsertCoin={onInsertCoin}
+          onPrize={onPrize}
           onOpenFilters={onOpenFilters}
         />
       ) : machine === 'gacha' ? (
         <Gashapon
           pool={pool}
-          coins={coins}
-          onSpend={onSpend}
-          onPrize={(m) => onPrize(m, false)}
-          onInsertCoin={onInsertCoin}
+          onPrize={onPrize}
           onOpenFilters={onOpenFilters}
         />
       ) : machine === 'wheel' ? (
         <Wheel
           pool={pool}
-          coins={coins}
-          onSpend={onSpend}
-          onPrize={(m) => onPrize(m, false)}
-          onInsertCoin={onInsertCoin}
+          onPrize={onPrize}
           onOpenFilters={onOpenFilters}
         />
       ) : machine === 'plinko' ? (
         <Plinko
           pool={pool}
-          coins={coins}
-          onSpend={onSpend}
-          onPrize={(m) => onPrize(m, false)}
-          onInsertCoin={onInsertCoin}
+          onPrize={onPrize}
           onOpenFilters={onOpenFilters}
         />
       ) : (
         <Bracket
           pool={pool}
-          coins={coins}
-          onSpend={onSpend}
-          onPrize={(m) => onPrize(m, false)}
-          onInsertCoin={onInsertCoin}
+          onPrize={onPrize}
           onOpenFilters={onOpenFilters}
         />
       )}

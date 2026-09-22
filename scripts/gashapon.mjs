@@ -1,8 +1,8 @@
 /**
  * Gashapon punya dua tahap (putar lalu pecahkan) dan dua jalur masukan (seret
- * kenop atau tekan tombol), jadi yang dijaga di sini adalah: koin terpakai
- * tepat satu per putaran, mesin selalu sampai ke hadiah, dan tidak pernah
- * tersangkut — termasuk saat kenop ditekan lalu dilepas tanpa diputar.
+ * kenop atau tekan tombol), jadi yang dijaga di sini adalah: tiap putaran
+ * selalu sampai ke hadiah dan mesin tidak pernah tersangkut — termasuk saat
+ * kenop ditekan lalu dilepas tanpa diputar.
  */
 import { chromium } from 'playwright'
 
@@ -17,10 +17,6 @@ const check = (name, ok, extra = '') => {
   if (!ok) fails.push(name)
 }
 
-const coins = async () =>
-  Number(
-    (await page.locator('[aria-label$="koin tersisa"]').first().getAttribute('aria-label')).replace(/\D/g, ''),
-  )
 const status = async () => (await page.locator('[role="status"]').first().innerText()).trim()
 const prizeEl = () => page.locator('[role="status"][aria-label^="Kamu mendapat"]')
 const knob = () => page.locator('button[aria-label^="Putar kenop"]')
@@ -35,7 +31,6 @@ await page.waitForTimeout(700)
 check('kenop terpasang', (await knob().count()) === 1)
 check('laci mulai kosong', (await page.locator('text=Laci kosong').count()) === 1)
 
-const start = await coins()
 let rounds = 0
 let prizes = 0
 
@@ -95,11 +90,6 @@ await page.locator('button[aria-label="Tutup"]').click()
 await page.waitForTimeout(500)
 
 check('setiap putaran berujung hadiah', prizes === rounds, `${prizes} hadiah dari ${rounds} putaran`)
-check(
-  'koin terpakai tepat satu per putaran',
-  (await coins()) === start - rounds,
-  `${start} -> ${await coins()}, diharapkan ${start - rounds}`,
-)
 check('mesin kembali siap dipakai', (await status()).startsWith('Putar kenop'), await status())
 check('tidak ada exception JS', errors.length === 0, errors.slice(0, 3).join(' || '))
 

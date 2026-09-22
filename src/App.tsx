@@ -30,8 +30,8 @@ export default function App() {
   }, [tab])
 
   const handlePrize = useCallback(
-    (movie: Movie, refundCoin: boolean) => {
-      arcade.recordWin(movie, refundCoin)
+    (movie: Movie) => {
+      arcade.recordWin(movie)
       setPrize(movie)
     },
     [arcade],
@@ -58,13 +58,17 @@ export default function App() {
             machine={machine}
             history={arcade.history.map((h) => h.id)}
             watchlist={arcade.watchlist}
-            coins={arcade.coins}
+            watchlistCount={arcade.watchlist.length}
             activeFilters={activeFilters}
             onPlay={(id) => {
               setMachine(id)
               setTab('machine')
             }}
             onHighlight={setMachine}
+            onOpenLibrary={() => {
+              sfx.click()
+              setTab('library')
+            }}
             onSelectMovie={setDetail}
             onApplyShelf={applyShelf}
             onOpenSearch={() => {
@@ -81,12 +85,9 @@ export default function App() {
             machine={machine}
             onChangeMachine={setMachine}
             pool={arcade.pool}
-            coins={arcade.coins}
             activeFilters={activeFilters}
-            onSpend={arcade.spendCoin}
             onPrize={handlePrize}
             onMiss={() => undefined}
-            onInsertCoin={() => arcade.addCoins(5)}
             onOpenFilters={() => setSheet('filters')}
             onOpenSettings={() => setSheet('settings')}
           />

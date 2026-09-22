@@ -48,7 +48,8 @@ game di ponsel alih-alih halaman apple.com: permukaannya gelap; ada kontrol kaca
 buram untuk aksi di atas artwork; dan ubin persegi kecil memakai radius 18px
 supaya terbaca sebagai ikon aplikasi, bukan sebagai gambar.
 
-Beranda adalah pemilih mesin: judul di tengah diapit tombol menu dan sisa koin,
+Beranda adalah pemilih mesin: judul di tengah diapit tombol menu dan pintasan
+watchlist,
 kolom cari dengan tombol filter di sebelahnya, baris kategori bertitik, lalu
 kartu mesin bergaya coverflow — kartu tetangga mengintip di kedua tepi supaya
 jelas daftarnya bisa digeser. Tiap kartu adalah mozaik 2x2 poster dengan nama
@@ -95,8 +96,8 @@ lalu **pecahkan kapsulnya**. Kenopnya bisa diseret melingkar dengan jari —
 memutar balik mengurangi progres, seperti kenop sungguhan — dan ada tombol
 Putar untuk keyboard atau sekali ketuk.
 
-Melepas kenop sebelum penuh tidak menghanguskan koin: putaran diselesaikan
-otomatis, karena koinnya sudah terpakai saat kenop pertama kali disentuh.
+Melepas kenop sebelum penuh tidak membuat mesin tersangkut: putarannya
+diselesaikan otomatis begitu kenop dilepas.
 
 ### Roda Putar
 
@@ -132,27 +133,10 @@ Satu-satunya mesin yang **bukan undian**. Enam belas film diacak dari pool,
 lalu kamu yang memutuskan di lima belas duel: 16 → 8 → 4 → 2 → juara. Yang
 diundi hanya pesertanya; hasilnya sepenuhnya pilihanmu.
 
-Satu turnamen memakai satu koin, berapa pun jumlah duelnya. Membatalkan di
-tengah jalan tidak mengembalikan koin — mesinnya sudah dipakai.
-
 Karena tidak ada keacakan yang perlu dijaga, `npm run smoke:bracket` menjaga
 strukturnya: jumlah duel harus tepat lima belas, babaknya harus menyusut
 16-8-4-2, film yang sudah kalah tidak boleh muncul lagi, dan juaranya harus
 benar-benar film yang dipilih di duel terakhir.
-
-### Ekonomi koin
-
-Satu permainan memakai satu koin di keenam mesin, tapi pengembaliannya berbeda
-karena peluangnya berbeda:
-
-| Mesin | Bisa gagal? | Koin kembali saat menang? |
-|-------|-------------|---------------------------|
-| Movie Catcher | ya, cengkeraman bisa lepas | ya — yang mahal adalah meleset |
-| Case Opening | tidak, selalu memberi film | tidak — kalau dikembalikan, mesin ini jadi gratis tanpa batas |
-| Gashapon | tidak, selalu memberi film | tidak — alasan yang sama |
-| Roda Putar | tidak, selalu memberi film | tidak — alasan yang sama |
-| Plinko | tidak, selalu memberi film | tidak — alasan yang sama |
-| Turnamen | tidak, selalu berujung juara | tidak — satu koin untuk lima belas duel |
 
 ## Sinkron antar perangkat
 
@@ -163,7 +147,7 @@ meninggalkan browser.
 
 Supaya menyeberang, ada **kode sync**. Di Pengaturan, satu perangkat menekan
 "Buat kode sync" dan mendapat kode delapan karakter seperti `NGSB-6M5C`;
-perangkat lain memasukkan kode itu. Setelah tersambung, koin, tangkapan,
+perangkat lain memasukkan kode itu. Setelah tersambung, tangkapan,
 watchlist, dan tanda ditonton mengikuti ke mana pun kamu buka. Tidak ada akun
 dan tidak ada login — kodenya sendiri yang jadi kuncinya, jadi perlakukan
 seperti kata sandi.
@@ -213,8 +197,8 @@ untuk watchlist dan tanda sudah ditonton.
 
 Lembar hadiah juga punya **Batalkan tangkapan** tepat setelah menang, dan
 lembar detail film punya **Hapus dari tangkapan** untuk film yang sudah
-tercatat. Menghapus catatan **tidak mengubah koin** — koinnya sudah selesai
-dihitung saat permainan berakhir.
+tercatat. Menghapus catatan hanya membuang entrinya dari koleksi;
+mesinnya sendiri bisa dimainkan lagi kapan saja.
 
 ## Poster
 
@@ -254,7 +238,23 @@ di-cache 30 menit, jadi memuat ulang halaman nanti juga akan mencobanya lagi.
 **Daftar filmnya adalah snapshot statis**, bukan feed live. IMDb tidak
 menyediakan API publik gratis dan peringkatnya bergeser setiap hari, jadi 250
 entri di `src/data/movies.ts` sengaja dibekukan: peringkat dan rating di sana
-adalah perkiraan dan bisa berbeda dari IMDb hari ini.
+bisa berbeda dari IMDb hari ini.
+
+Snapshot terakhir diambil September 2026 dari halaman IMDb Top 250 yang
+disimpan sebagai HTML, lalu dibaca dari `__NEXT_DATA__`-nya: peringkat, judul,
+tahun, rating, durasi, dan genre datang dari sana. Sutradara dan sinopsis
+Indonesia tidak ada di halaman itu, jadi keduanya dibawa dari kurasi
+sebelumnya lewat pencocokan judul+tahun, dan ditulis manual untuk 42 film yang
+baru masuk daftar.
+
+Dua keputusan yang sengaja diambil saat menyegarkan data:
+
+- **Judul lama dipertahankan** untuk film yang sama. Halaman yang diekspor
+  memakai judul lokal (`Seven`, `Leon`, `Untouchable`, `Le Mans '66`), padahal
+  id `localStorage` dan pencarian poster dibangun dari judul — mengubahnya akan
+  memutus watchlist yang sudah tersimpan.
+- **Satu entri tanpa sutradara.** `I Swear` (2025) belum terverifikasi, jadi
+  kolomnya diisi `—` alih-alih ditebak.
 
 ## Arsitektur
 
@@ -267,7 +267,7 @@ src/
     shelves.ts                definisi rak konten di beranda
     sound.ts                  seluruh SFX disintesis WebAudio (nol file audio)
     shareCard.ts              render kartu hasil 900x1400 ke PNG
-    useArcade.ts              koin, riwayat, watchlist, tanda ditonton, filter
+    useArcade.ts              riwayat, watchlist, tanda ditonton, filter
   components/
     GameSelector.tsx          pemilih mesin: kategori + kartu coverflow
     HomeScreen / SearchScreen / LibraryScreen
@@ -304,7 +304,7 @@ Tiga suite Playwright menjalankan situs di browser sungguhan:
 npm run build
 npm run preview &
 npm run smoke          # beranda, pemilih mesin, mesin, filter, hapus tangkapan, cari, mobile
-npm run smoke:coins    # invarian: koin == awal - jumlah_capit + jumlah_menang
+npm run smoke:prize    # invarian: tidak pernah ada hadiah tanpa capitan
 npm run smoke:case     # hadiah Case Opening == ubin di bawah penanda
 npm run smoke:gacha    # dua tahap Gashapon, termasuk jalur yang mudah tersangkut
 npm run smoke:wheel    # hadiah Roda Putar == segmen di bawah jarum
@@ -322,8 +322,9 @@ penambahan), dan perangkat tanpa kode tetap terpisah. Servernya
 mengganti penyimpanannya dengan Map di memori, jadi yang diuji adalah kode yang
 benar-benar berjalan di produksi.
 
-Tiap mesin punya penjaga kejujurannya sendiri. `smoke:coins` memastikan mesin
-capit tidak pernah memberi hadiah yang tidak dicapit. `smoke:case` membaca
+Tiap mesin punya penjaga kejujurannya sendiri. `smoke:prize` memastikan mesin
+capit tidak pernah memberi hadiah yang tidak dicapit: jumlah film di koleksi
+harus persis sama dengan jumlah capitan yang berhasil. `smoke:case` membaca
 geometri strip setelah animasi berhenti dan membandingkan ubin di bawah penanda
 dengan hadiah yang diberikan — kalau keduanya berbeda, animasinya berbohong.
 `smoke:gacha` menelusuri ketiga jalur masukan kenop, termasuk dua yang mudah

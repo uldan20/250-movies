@@ -112,7 +112,7 @@ export default function LibraryScreen({
         <>
           {editing && (
             <p className="t-caption mb-3 px-5 text-mist">
-              Ketuk tanda − untuk menghapus satu per satu. Koin tidak terpengaruh.
+              Ketuk tanda − untuk menghapus satu per satu.
             </p>
           )}
 

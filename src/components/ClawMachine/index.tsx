@@ -5,11 +5,8 @@ import { ClawGame, type GamePhase } from './game'
 
 type Props = {
   pool: Movie[]
-  coins: number
-  onSpend: () => void
   onPrize: (movie: Movie) => void
   onMiss: () => void
-  onInsertCoin: () => void
   onOpenFilters: () => void
 }
 
@@ -60,11 +57,8 @@ function ArrowButton({
 
 export default function ClawMachine({
   pool,
-  coins,
-  onSpend,
   onPrize,
   onMiss,
-  onInsertCoin,
   onOpenFilters,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -102,15 +96,14 @@ export default function ClawMachine({
     gameRef.current?.setPool(pool)
   }, [poolSignature, pool])
 
-  const canPlay = phase === 'idle' && coins > 0 && pool.length > 0
+  const canPlay = phase === 'idle' && pool.length > 0
 
   const drop = useCallback(() => {
     const game = gameRef.current
-    if (!game || !game.canDrop() || coins <= 0) return
-    onSpend()
-    sfx.coin()
+    if (!game || !game.canDrop()) return
+    sfx.chime()
     game.drop()
-  }, [coins, onSpend])
+  }, [])
 
   const move = useCallback((dir: number, from: 'left' | 'right' | null) => {
     gameRef.current?.setMove(dir)
@@ -182,20 +175,6 @@ export default function ClawMachine({
               </button>
             </div>
           )}
-          {coins === 0 && pool.length > 0 && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/85 px-8 text-center">
-              <p className="t-subheading font-semibold text-frost">Koin habis</p>
-              <button
-                onClick={() => {
-                  sfx.coin()
-                  onInsertCoin()
-                }}
-                className="pill pill--filled"
-              >
-                Masukkan koin
-              </button>
-            </div>
-          )}
         </div>
 
         <p
@@ -226,15 +205,12 @@ export default function ClawMachine({
           />
         </div>
 
-        <p
-          className="t-caption mt-5 text-center font-light text-mist"
-          aria-label={`${coins} koin tersisa`}
-        >
-          {coins} koin · satu capit memakai satu koin, menang mengembalikannya
+        <p className="t-caption mt-5 text-center font-light text-mist">
+          Cengkeraman bisa lepas — kalau meleset, tinggal coba lagi
         </p>
-      <p className="t-caption mt-1 text-center font-light text-mist">
-        Keyboard: ← → menggeser, Spasi mencapit
-      </p>
+        <p className="t-caption mt-1 text-center font-light text-mist">
+          Keyboard: ← → menggeser, Spasi mencapit
+        </p>
     </div>
   )
 }
