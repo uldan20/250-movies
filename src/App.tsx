@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import FilterSheet from './components/FilterSheet'
+import { GAMES } from './components/GameSelector'
 import HomeScreen from './components/HomeScreen'
 import LibraryScreen from './components/LibraryScreen'
 import MachineScreen, { type MachineId } from './components/MachineScreen'
@@ -7,6 +8,7 @@ import MovieSheet from './components/MovieSheet'
 import SearchScreen from './components/SearchScreen'
 import SettingsSheet from './components/SettingsSheet'
 import TabBar, { type TabId } from './components/TabBar'
+import { PlayFab } from './components/ui'
 import type { Movie } from './data/types'
 import { countActive, type Filters } from './lib/filters'
 import { sfx } from './lib/sound'
@@ -45,6 +47,7 @@ export default function App() {
   )
 
   const activeFilters = countActive(arcade.filters)
+  const machineName = GAMES.find((g) => g.id === machine)?.name ?? 'mesin'
   const libraryCount = new Set([...arcade.history.map((h) => h.id), ...arcade.watchlist]).size
 
   return (
@@ -52,15 +55,23 @@ export default function App() {
       <main>
         {tab === 'home' && (
           <HomeScreen
+            machine={machine}
             history={arcade.history.map((h) => h.id)}
             watchlist={arcade.watchlist}
             coins={arcade.coins}
+            activeFilters={activeFilters}
             onPlay={(id) => {
               setMachine(id)
               setTab('machine')
             }}
+            onHighlight={setMachine}
             onSelectMovie={setDetail}
             onApplyShelf={applyShelf}
+            onOpenSearch={() => {
+              sfx.click()
+              setTab('search')
+            }}
+            onOpenFilters={() => setSheet('filters')}
             onOpenSettings={() => setSheet('settings')}
           />
         )}
@@ -114,6 +125,17 @@ export default function App() {
           setTab(next)
         }}
       />
+
+      {/* Di layar mesin tombolnya disembunyikan: pemainnya sudah ada di mesin itu. */}
+      {tab !== 'machine' && (
+        <PlayFab
+          label={`Mainkan ${machineName}`}
+          onClick={() => {
+            sfx.click()
+            setTab('machine')
+          }}
+        />
+      )}
 
       <FilterSheet
         open={sheet === 'filters'}

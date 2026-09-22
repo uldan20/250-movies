@@ -53,7 +53,7 @@ export default function MachineScreen({
 
   return (
     <div className="fade-in pb-28">
-      <div className="px-5 pb-4 pt-3">
+      <div className="px-5 pb-3 pt-3">
         <div className="flex items-start justify-between">
           <div>
             <h1 className="t-heading font-bold text-frost">{meta.name}</h1>
@@ -69,31 +69,26 @@ export default function MachineScreen({
             <SettingsButton onClick={onOpenSettings} />
           </div>
         </div>
+      </div>
 
-        {/* Pemilih mesin bergaya segmented control iOS. */}
-        <div
-          role="tablist"
-          aria-label="Pilih mesin"
-          className="mt-4 flex gap-1 rounded-[8px] border border-hairline bg-carbon p-1"
-        >
-          {ORDER.map((id) => (
-            <button
-              key={id}
-              role="tab"
-              data-machine={id}
-              aria-selected={machine === id}
-              onClick={() => {
-                sfx.click()
-                onChangeMachine(id)
-              }}
-              className={`t-body-sm flex-1 rounded-[6px] px-2 py-2 font-medium transition-colors ${
-                machine === id ? 'bg-slate text-frost' : 'text-mist hover:text-ash'
-              }`}
-            >
-              {META[id].short}
-            </button>
-          ))}
-        </div>
+      {/* Pemilih mesin memakai baris kategori yang sama dengan pemilih di beranda. */}
+      <div role="tablist" aria-label="Pilih mesin" className="chip-row pb-5">
+        {ORDER.map((id) => (
+          <button
+            key={id}
+            role="tab"
+            data-machine={id}
+            aria-selected={machine === id}
+            onClick={() => {
+              sfx.click()
+              onChangeMachine(id)
+            }}
+            className="chip"
+          >
+            <span>{META[id].short}</span>
+            <span className="chip-dot" aria-hidden="true" />
+          </button>
+        ))}
       </div>
 
       {machine === 'claw' ? (

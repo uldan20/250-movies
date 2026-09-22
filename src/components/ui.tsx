@@ -114,6 +114,22 @@ export function SettingsButton({ onClick }: { onClick: () => void }) {
   )
 }
 
+/**
+ * Tombol putar mengambang yang menembus tab bar. Selalu memutar mesin yang
+ * terpilih terakhir — kartu yang sedang di tengah pemilih ikut menentukannya —
+ * jadi tombolnya tidak pernah jadi aksi kosong. Di layar mesin ia disembunyikan
+ * karena pemainnya sudah sampai tujuan.
+ */
+export function PlayFab({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button onClick={onClick} aria-label={label} title={label} className="fab-play">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M8.5 5.6v12.8a.7.7 0 0 0 1.07.6l10-6.4a.7.7 0 0 0 0-1.2l-10-6.4a.7.7 0 0 0-1.07.6z" />
+      </svg>
+    </button>
+  )
+}
+
 /** Judul besar ala iOS di kepala tiap tab. */
 export function LargeTitle({ title, action }: { title: string; action?: ReactNode }) {
   return (

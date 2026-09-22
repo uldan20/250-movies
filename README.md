@@ -43,13 +43,18 @@ seperti aplikasi Apple Arcade. Yang dipegang dari dokumen itu:
 - **Negative tracking** yang mengetat seiring ukuran huruf, memakai SF Pro pada
   perangkat Apple dan Inter sebagai pengganti di tempat lain.
 
-Tiga penyimpangan yang disengaja, karena mengikuti tangkapan layar Apple Arcade
-alih-alih halaman apple.com: permukaannya gelap; ada satu pil kaca buram untuk
-aksi di atas artwork hero; dan ubin persegi kecil memakai radius 18px supaya
-terbaca sebagai ikon aplikasi, bukan sebagai gambar.
+Tiga penyimpangan yang disengaja, karena mengikuti tangkapan layar aplikasi
+game di ponsel alih-alih halaman apple.com: permukaannya gelap; ada kontrol kaca
+buram untuk aksi di atas artwork; dan ubin persegi kecil memakai radius 18px
+supaya terbaca sebagai ikon aplikasi, bukan sebagai gambar.
 
-Strukturnya juga mengikuti Arcade: hero carousel yang maju sendiri, rak konten
-bergulir horizontal, dan tab bar tetap di bawah — Beranda, Mesin, Koleksi, Cari.
+Beranda adalah pemilih mesin: judul di tengah diapit tombol menu dan sisa koin,
+kolom cari dengan tombol filter di sebelahnya, baris kategori bertitik, lalu
+kartu mesin bergaya coverflow — kartu tetangga mengintip di kedua tepi supaya
+jelas daftarnya bisa digeser. Tiap kartu adalah mozaik 2x2 poster dengan nama
+mesin dan tombol putar di sudutnya. Di bawahnya rak konten bergulir horizontal,
+tab bar tetap — Beranda, Mesin, Koleksi, Cari — dan satu tombol putar
+mengambang yang selalu membuka mesin yang sedang terpilih.
 
 ## Mesin
 
@@ -264,7 +269,7 @@ src/
     shareCard.ts              render kartu hasil 900x1400 ke PNG
     useArcade.ts              koin, riwayat, watchlist, tanda ditonton, filter
   components/
-    HeroCarousel.tsx          carousel mesin unggulan
+    GameSelector.tsx          pemilih mesin: kategori + kartu coverflow
     HomeScreen / SearchScreen / LibraryScreen
     TabBar.tsx                navigasi bawah
     MachineScreen.tsx         kepala layar mesin + pemilih mesin
@@ -298,7 +303,7 @@ Tiga suite Playwright menjalankan situs di browser sungguhan:
 ```bash
 npm run build
 npm run preview &
-npm run smoke          # beranda, hero, mesin, filter, hapus tangkapan, cari, mobile
+npm run smoke          # beranda, pemilih mesin, mesin, filter, hapus tangkapan, cari, mobile
 npm run smoke:coins    # invarian: koin == awal - jumlah_capit + jumlah_menang
 npm run smoke:case     # hadiah Case Opening == ubin di bawah penanda
 npm run smoke:gacha    # dua tahap Gashapon, termasuk jalur yang mudah tersangkut
@@ -328,10 +333,11 @@ hasil physics dan penempatan film — slot yang kejatuhan bola harus benar-benar
 berisi film yang diberikan — sekaligus memastikan isi slot diundi ulang tiap
 lemparan.
 
-`smoke` juga mengunci hero di lebar desktop: tombol Mainkan pernah hilang karena
-tinggi slide bergantung rantai `aspect-ratio` → `max-height` → `h-full`, jadi
-sekarang tingginya eksplisit dan kontennya berada di alur normal, bukan
-diposisikan absolut.
+`smoke` juga mengunci kartu mesin di lebar desktop: tombol putar pernah hilang
+karena tinggi kartu bergantung rantai `aspect-ratio` → `max-height` → `h-full`,
+jadi sekarang lebarnya dikunci lewat `--gs-card` dan tingginya mengikuti rasio
+2:3 kartu. Suite yang sama memeriksa baris kategori benar-benar menyaring kartu,
+bukan cuma menyorot labelnya.
 
 `smoke:posters` membuktikan tiga hal yang mudah salah pada resolver:
 `pilicense=any` terkirim, kandidat tanpa thumbnail dilewati lalu pencarian
@@ -343,17 +349,18 @@ Kalau perlu, tunjuk Chromium lewat `CHROMIUM_PATH` dan alamat lain lewat
 
 ## Aksesibilitas
 
-Seluruh permainan bisa dijalankan dari keyboard. Perubahan fase derek diumumkan
-lewat `role="status"` + `aria-live`. `prefers-reduced-motion` menghentikan
-carousel yang maju sendiri, guncangan layar, dan kilatan kemenangan — physics
-dan permainannya tetap utuh. Situs tidak punya scroll horizontal di lebar ponsel.
+Seluruh permainan bisa dijalankan dari keyboard; pemilih mesin di beranda
+digeser dengan panah kiri/kanan. Perubahan fase derek diumumkan lewat
+`role="status"` + `aria-live`. `prefers-reduced-motion` menghentikan guncangan
+layar, kilatan kemenangan, dan seluruh transisi geseran kartu — physics dan
+permainannya tetap utuh. Situs tidak punya scroll horizontal di lebar ponsel.
 
 ## Menambah mesin
 
-Keenam mesin yang direncanakan sudah jadi. Carousel beranda berupa daftar mesin
-dan layar mesin punya pemilihnya sendiri, jadi mesin baru cukup ditambahkan
-sebagai satu entri di `HeroCarousel.tsx`, satu baris di `MachineScreen.tsx`, dan
-satu komponen.
+Keenam mesin yang direncanakan sudah jadi. Pemilih di beranda berupa daftar
+mesin dan layar mesin punya pemilihnya sendiri, jadi mesin baru cukup
+ditambahkan sebagai satu entri di `GameSelector.tsx` (nama, kategori, warna
+aksen), satu baris di `MachineScreen.tsx`, dan satu komponen.
 
 Kalau mesin baru itu memutuskan hadiah lewat animasi, tulis juga suite yang
 membaca keadaan akhir secara independen lalu membandingkannya dengan hadiah

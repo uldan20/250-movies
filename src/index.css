@@ -255,6 +255,262 @@ body {
   color: var(--color-frost);
 }
 
+/* ---------- chrome kepala layar ---------- */
+
+.safe-top {
+  padding-top: calc(env(safe-area-inset-top, 0px) + 14px);
+}
+
+/*
+ * Tombol bundar kembar yang mengapit judul di tengah, lalu satu kolom cari +
+ * tombol filter di bawahnya: susunan kepala layar pemilih mesin.
+ */
+.chrome-btn {
+  display: inline-flex;
+  height: 40px;
+  width: 40px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: 980px;
+  border: 1px solid var(--color-hairline);
+  background: var(--color-carbon);
+  color: var(--color-frost);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 160ms ease;
+}
+
+.chrome-btn:hover {
+  background: var(--color-slate);
+}
+
+/* Tombol ikon persegi membulat — pasangan kolom cari. */
+.icon-btn {
+  display: inline-flex;
+  height: 44px;
+  width: 44px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  border: 1px solid var(--color-hairline);
+  background: var(--color-carbon);
+  color: var(--color-frost);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 160ms ease;
+}
+
+.icon-btn:hover {
+  background: var(--color-slate);
+}
+
+.chrome-btn:focus-visible,
+.icon-btn:focus-visible,
+.search-field:focus-visible {
+  outline: 2px solid var(--color-signal-blue);
+  outline-offset: 3px;
+}
+
+/* Titik merah kecil di pojok tombol — penanda "ada yang perlu dilihat". */
+.chrome-dot {
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  height: 10px;
+  width: 10px;
+  border-radius: 980px;
+  border: 2px solid var(--color-onyx);
+  background: #ff453a;
+}
+
+.search-field {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  gap: 10px;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 14px;
+  border: 1px solid var(--color-hairline);
+  background: var(--color-carbon);
+  color: var(--color-mist);
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 160ms ease;
+}
+
+.search-field:hover {
+  background: var(--color-slate);
+}
+
+/* ---------- baris kategori ---------- */
+
+.chip-row {
+  display: flex;
+  gap: 22px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-inline: 20px;
+}
+
+.chip-row::-webkit-scrollbar {
+  display: none;
+}
+
+.chip {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  border: none;
+  background: none;
+  padding: 2px 0 0;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.24px;
+  color: var(--color-mist);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 160ms ease;
+}
+
+.chip:hover {
+  color: var(--color-ash);
+}
+
+.chip[aria-selected='true'],
+.chip[aria-selected='true']:hover {
+  color: var(--color-frost);
+  font-weight: 600;
+}
+
+.chip:focus-visible {
+  outline: 2px solid var(--color-signal-blue);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+/* Titik di bawah label menandai kategori aktif — bukan garis bawah. */
+.chip-dot {
+  height: 4px;
+  width: 4px;
+  border-radius: 980px;
+  background: transparent;
+  transition: background-color 160ms ease;
+}
+
+.chip[aria-selected='true'] .chip-dot {
+  background: var(--color-frost);
+}
+
+/* ---------- pemilih mesin bergaya coverflow ---------- */
+
+/*
+ * Kartu tetangga sengaja mengintip di kedua tepi supaya jelas daftarnya bisa
+ * digeser. Lebar kartu hidup di --gs-card, jadi posisi rel cukup dihitung
+ * dengan calc dan tidak perlu mengukur DOM.
+ */
+.gs-viewport {
+  overflow: hidden;
+  touch-action: pan-y;
+}
+
+.gs-track {
+  display: flex;
+  gap: var(--gs-gap);
+  padding-inline-start: calc(50% - var(--gs-card) / 2);
+  transition: transform 460ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.gs-card {
+  position: relative;
+  display: flex;
+  flex: 0 0 var(--gs-card);
+  width: var(--gs-card);
+  aspect-ratio: 2 / 3;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+  border-radius: 26px;
+  border: 1px solid rgba(245, 245, 247, 0.1);
+  background: var(--color-carbon);
+  padding: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 460ms cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 460ms ease;
+}
+
+.gs-card:focus-visible {
+  outline: 2px solid var(--color-signal-blue);
+  outline-offset: 3px;
+}
+
+/* Lingkaran putar di sudut kartu: kaca buram, sama bahasa dengan pill--glass. */
+.gs-play {
+  display: flex;
+  height: 52px;
+  width: 52px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: 980px;
+  border: 1px solid rgba(245, 245, 247, 0.38);
+  background: rgba(235, 235, 245, 0.18);
+  color: var(--color-frost);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+}
+
+/* ---------- tombol putar mengambang ---------- */
+
+/*
+ * Cincin onyx menggantikan drop shadow: hierarki tetap dibangun dari
+ * pergeseran permukaan, sesuai DESIGN.md, tapi tombolnya tetap lepas dari
+ * tab bar yang ditembusinya.
+ */
+.fab-play {
+  position: fixed;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 34px);
+  z-index: 45;
+  display: flex;
+  height: 64px;
+  width: 64px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 980px;
+  border: 4px solid var(--color-onyx);
+  background: var(--color-frost);
+  color: var(--color-onyx);
+  transform: translateX(-50%);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 120ms ease,
+    background-color 160ms ease;
+}
+
+.fab-play:hover {
+  background: #ffffff;
+}
+
+.fab-play:active {
+  transform: translateX(-50%) scale(0.95);
+}
+
+.fab-play:focus-visible {
+  outline: 2px solid var(--color-signal-blue);
+  outline-offset: 3px;
+}
+
 /* ---------- lain-lain ---------- */
 
 @keyframes sheet-up {

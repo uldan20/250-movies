@@ -18,7 +18,7 @@ const phase = async () => (await page.locator('[role="status"]').first().innerTe
 
 await page.goto(BASE, { waitUntil: 'domcontentloaded' })
 await page.waitForTimeout(1500)
-await page.locator('button:has-text("Mainkan")').first().click()
+await page.locator('button[aria-label^="Mainkan"]').first().click()
 await page.waitForTimeout(4200)
 
 const start = await coins()

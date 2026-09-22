@@ -26,14 +26,24 @@ await page.waitForTimeout(2200)
 await page.screenshot({ path: `${shots}/a1-beranda.png` })
 
 check('beranda tampil', (await page.locator('h1').first().innerText()) === 'Beranda')
-check('hero punya enam slide', (await page.locator('[aria-label^="Ke slide"]').count()) === 6)
+check('pemilih punya enam titik', (await page.locator('[aria-label^="Ke slide"]').count()) === 6)
+check('pemilih punya enam kartu mesin', (await page.locator('[data-game-card]').count()) === 6)
+
+// Baris kategori menyaring kartu mesin, bukan cuma menyorot labelnya.
+await page.locator('button[data-category="kejutan"]').click()
+await page.waitForTimeout(700)
+const kejutan = await page.locator('[data-game-card]').count()
+check('kategori mempersempit pemilih', kejutan === 2, `${kejutan} kartu untuk "Kejutan"`)
+await page.locator('button[data-category="all"]').click()
+await page.waitForTimeout(700)
+check('kategori "Semua" mengembalikan semua', (await page.locator('[data-game-card]').count()) === 6)
 check('rak konten terisi', (await page.locator('h2').count()) >= 4, `${await page.locator('h2').count()} rak`)
 check('tab bar punya empat tab', (await page.locator('nav button').count()) === 4)
 
 const startCoins = await coins()
 
 // Masuk mesin lewat tombol hero, seperti pengguna sungguhan.
-await page.locator('button:has-text("Mainkan")').first().click()
+await page.locator('button[aria-label^="Mainkan"]').first().click()
 await page.waitForTimeout(4200)
 await page.screenshot({ path: `${shots}/a2-mesin.png` })
 
@@ -138,32 +148,35 @@ const overflow = await page.evaluate(
 )
 check('tidak ada scroll horizontal di ponsel', overflow <= 0, `${overflow}px`)
 
-// Hero di lebar desktop: tombolnya pernah hilang karena tinggi slide bergantung
-// rantai aspect-ratio -> max-height, jadi keadaan ini dikunci di sini.
+// Kartu mesin di lebar desktop: tombol putarnya pernah hilang karena tinggi
+// kartu bergantung rantai aspect-ratio -> max-height, jadi keadaan ini dikunci
+// di sini — kartu utuh di layar, dan mozaik posternya tidak melebihi kartu.
 await tab('Beranda').click()
 await page.setViewportSize({ width: 1440, height: 900 })
 await page.waitForTimeout(1200)
 await page.screenshot({ path: `${shots}/a7-desktop.png` })
 
 const hero = await page.evaluate(() => {
-  const slide = document.querySelector('[role="group"] > div > div')
-  const backdrop = slide.querySelector('[aria-hidden="true"].flex')
-  const btn = slide.querySelector('button')
-  if (!btn) return { ok: false, reason: 'tombol tidak ada' }
-  const r = btn.getBoundingClientRect()
-  const top = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)
+  const card = document.querySelector('[data-game-card][data-active="true"]')
+  if (!card) return { ok: false, reason: 'kartu aktif tidak ada' }
+  const art = card.querySelector('[data-art]')
+  const play = card.querySelector('[data-play]')
+  if (!art || !play) return { ok: false, reason: 'isi kartu tidak lengkap' }
+  const r = card.getBoundingClientRect()
+  const p = play.getBoundingClientRect()
+  const top = document.elementFromPoint(p.x + p.width / 2, p.y + p.height / 2)
   return {
     ok: true,
-    label: btn.textContent.trim(),
+    label: card.getAttribute('aria-label'),
     visible: r.width > 0 && r.height > 0 && r.y >= 0 && r.bottom <= innerHeight,
-    onTop: btn === top || btn.contains(top),
-    backdropOverflow: backdrop.scrollWidth - Math.round(backdrop.getBoundingClientRect().width),
+    onTop: card === top || card.contains(top),
+    artOverflow: art.scrollWidth - card.clientWidth,
   }
 })
-check('tombol hero ada di desktop', hero.ok && hero.label === 'Mainkan', hero.reason ?? hero.label)
-check('tombol hero terlihat penuh', hero.ok && hero.visible)
-check('tombol hero tidak tertimpa latar', hero.ok && hero.onTop, hero.ok ? String(hero.onTop) : '')
-check('latar hero tidak melebihi kabin', hero.ok && hero.backdropOverflow <= 24, `${hero.backdropOverflow}px`)
+check('kartu mesin aktif ada di desktop', hero.ok && hero.label.startsWith('Mainkan'), hero.reason ?? hero.label)
+check('kartu mesin terlihat penuh', hero.ok && hero.visible)
+check('tombol putar tidak tertimpa latar', hero.ok && hero.onTop, hero.ok ? String(hero.onTop) : '')
+check('mozaik poster tidak melebihi kartu', hero.ok && hero.artOverflow <= 24, `${hero.artOverflow}px`)
 check('tidak ada exception JS', errors.length === 0, errors.slice(0, 3).join(' || '))
 
 await browser.close()
